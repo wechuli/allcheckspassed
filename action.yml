@@ -32,6 +32,18 @@ inputs:
     description: "If set to true, the action will include commit statuses in the check, checks and commit statuses have different APIs"
     required: false
     default: "true"
+  poll:
+    description: "Whether to poll the API for completed checks or to simply check once and exit"
+    required: false
+    default: "true"
+  delay:
+    description: "The period in minutes to wait to allow the checks to complete"
+    required: false
+    default: "1"
+  polling_interval:
+    description: "The period in minutes between API calls that polls the GitHub Api for completed checks, shorter intervals may result in API rate limiting"
+    required: false
+    default: "1"
 outputs:
   time:
     description: "Your output description here"

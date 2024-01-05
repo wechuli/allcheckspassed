@@ -13,6 +13,9 @@ interface Iinputs {
   treatSkippedAsPassed: boolean;
   createCheck: boolean;
   includeCommitStatuses: boolean;
+  poll: boolean;
+  delay: number;
+  pollingInterval: number;
 }
 export default function inputsParser(): Iinputs {
   const eventName = github.context.eventName;
@@ -35,6 +38,13 @@ export default function inputsParser(): Iinputs {
   const createCheck: boolean = core.getInput("create_check") == "true";
   const includeCommitStatuses: boolean =
     core.getInput("include_commit_statuses") == "true";
+  const poll: boolean = core.getInput("poll") == "true";
+  const delay: number = validateIntervalValues(
+    parseInt(core.getInput("delay"))
+  );
+  const pollingInterval: number = validateIntervalValues(
+    parseInt(core.getInput("polling_interval"))
+  );
 
   return {
     commitSHA,
@@ -43,5 +53,19 @@ export default function inputsParser(): Iinputs {
     treatSkippedAsPassed,
     createCheck,
     includeCommitStatuses,
+    poll,
+    delay,
+    pollingInterval,
   };
+}
+
+function validateIntervalValues(value: number): number {
+  const maxInterval = 360;
+  if (isNaN(value) || value < 0) {
+    return 1;
+  }
+  if (value > maxInterval) {
+    return maxInterval;
+  }
+  return value;
 }
