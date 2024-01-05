@@ -28,6 +28,10 @@ inputs:
     description: "If set to true, the action will create it's own check on the commit, rather than the default created by GitHub Action. Must be a GitHub App token"
     required: false
     default: "false"
+  include_commit_statuses:
+    description: "If set to true, the action will include commit statuses in the check, checks and commit statuses have different APIs"
+    required: false
+    default: "true"
 outputs:
   time:
     description: "Your output description here"

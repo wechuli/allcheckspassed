@@ -5,7 +5,16 @@ import * as github from "@actions/github";
  * Parses the inputs for the action.
  * @returns {object} The parsed inputs.
  */
-export function inputsParser(): object {
+
+interface Iinputs {
+  commitSHA: string;
+  checks: string[];
+  checksExclude: string[];
+  treatSkippedAsPassed: boolean;
+  createCheck: boolean;
+  includeCommitStatuses: boolean;
+}
+export default function inputsParser(): Iinputs {
   const eventName = github.context.eventName;
   const validPullRequestEvents = ["pull_request", "pull_request_target"];
   let headSha: string | undefined = undefined;
@@ -24,6 +33,8 @@ export function inputsParser(): object {
   const treatSkippedAsPassed: boolean =
     core.getInput("treat_skipped_as_passed") == "true";
   const createCheck: boolean = core.getInput("create_check") == "true";
+  const includeCommitStatuses: boolean =
+    core.getInput("include_commit_statuses") == "true";
 
   return {
     commitSHA,
@@ -31,5 +42,6 @@ export function inputsParser(): object {
     checksExclude,
     treatSkippedAsPassed,
     createCheck,
+    includeCommitStatuses,
   };
 }

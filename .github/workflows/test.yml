@@ -1,0 +1,14 @@
+name: Test Action
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build Action"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  testaction:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wechuli/allcheckspassed@main

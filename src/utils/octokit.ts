@@ -13,5 +13,4 @@ var restClient = new octokit.Octokit({
   },
 });
 
-
 export { restClient };

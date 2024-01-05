@@ -1,62 +1,38 @@
-name: Continuous Integration
-
+name: Build Action
 on:
-  pull_request:
   push:
     branches:
-      - main
-
-permissions:
-  contents: read
-
+      - "main"
+    paths:
+      - "src/**"
+  workflow_dispatch:
 jobs:
-  test-typescript:
-    name: TypeScript Tests
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        id: checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        id: setup-node
+        with:
+          fetch-depth: 0
+      - name: install nodejs
         uses: actions/setup-node@v4
         with:
-          node-version-file: .node-version
-          cache: npm
-
-      - name: Install Dependencies
-        id: npm-ci
+          node-version: "16"
+          cache: "npm"
+      - name: Install dependencies
         run: npm ci
-
-      - name: Check Format
-        id: npm-format-check
-        run: npm run format:check
-
-      - name: Lint
-        id: npm-lint
-        run: npm run lint
-
-      - name: Test
-        id: npm-ci-test
-        run: npm run ci-test
-
-  test-action:
-    name: GitHub Actions Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Test Local Action
-        id: test-action
-        uses: ./
-        with:
-          milliseconds: 2000
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+      - name: Test Action
+        run: npm run test
+      - name: Build Action
+        run: npm run build
+      - name: Package Action
+        run: npm run package
+      - name: Commit and push
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          git config --global user.name "$ACTOR"
+          git config --global user.email "$ACTOR@users.noreply.github.com"
+          git add .
+          git commit -m "Action build at commit $GITHUB_SHA"
+          git push origin

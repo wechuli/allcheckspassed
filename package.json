@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "author": "wechuli",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/wechuli/allcheckspassed",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/wechuli/allcheckspassed.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/wechuli/allcheckspassed/issues"
   },
   "keywords": [
     "actions",
@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "npm run format:write && npm run package",
-    "package": "ncc build src/index.ts --license licenses.txt",
+    "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
     "all": "npm run build && npm run test && npm run package"
   },
