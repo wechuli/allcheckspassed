@@ -42,7 +42,7 @@ async function run() {
         const repo = github.context.repo.repo;
         const sha = (0, inputsExtractor_1.default)().commitSHA;
         const allChecks = await (0, checks_1.getAllChecks)(owner, repo, sha);
-        core.debug("All checks: " + JSON.stringify(allChecks));
+        console.log("All checks: " + JSON.stringify(allChecks));
     }
     catch (error) {
         // Fail the workflow run if an error occurs
