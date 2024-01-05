@@ -40,6 +40,9 @@ function inputsParser() {
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
+    const poll = core.getInput("poll") == "true";
+    const delay = validateIntervalValues(parseInt(core.getInput("delay")));
+    const pollingInterval = validateIntervalValues(parseInt(core.getInput("polling_interval")));
     return {
         commitSHA,
         checks,
@@ -47,7 +50,20 @@ function inputsParser() {
         treatSkippedAsPassed,
         createCheck,
         includeCommitStatuses,
+        poll,
+        delay,
+        pollingInterval,
     };
 }
 exports.default = inputsParser;
+function validateIntervalValues(value) {
+    const maxInterval = 360;
+    if (isNaN(value) || value < 0) {
+        return 1;
+    }
+    if (value > maxInterval) {
+        return maxInterval;
+    }
+    return value;
+}
 //# sourceMappingURL=inputsExtractor.js.map
