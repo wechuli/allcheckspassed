@@ -14,7 +14,7 @@ export async function run(): Promise<void> {
     const repo = github.context.repo.repo;
     const sha = inputsParser().commitSHA;
     const allChecks = await getAllChecks(owner, repo, sha);
-    core.debug("All checks: " + JSON.stringify(allChecks));
+    console.log("All checks: " + JSON.stringify(allChecks));
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message);
