@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "npm run format:write && npm run package",
-    "package": "ncc build --source-map --license licenses.txt",
+    "package": "ncc build src/index.ts --license licenses.txt",
     "test": "jest",
     "all": "npm run build && npm run test && npm run package"
   },
