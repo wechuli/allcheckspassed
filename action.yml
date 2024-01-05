@@ -1,23 +1,36 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
-
-# Add your action's branding here. This will appear on the GitHub Marketplace.
+name: "allcheckspassed"
+description: "GitHub Action to check if all checks have passed on a specific commit"
+author: "wechuli"
 branding:
-  icon: 'heart'
-  color: 'red'
-
-# Define your inputs here.
+  icon: "check-circle"
+  color: "green"
 inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
-
-# Define your outputs here.
+  commit_sha:
+    description: "The commit sha that you want to check"
+    required: false
+  token:
+    description: "The GitHub token to use for authentication"
+    required: false
+    default: ${{ github.token }}
+  checks:
+    description: "A comma separated list of checks to check"
+    required: false
+    default: "-1"
+  checks_exclude:
+    description: "A comma separated list of checks to exclude, if this checks fail,the action will not fail"
+    required: false
+    default: "-1"
+  treat_skipped_as_passed:
+    description: "If set to true, skipped checks will be treated as passed"
+    required: false
+    default: "true"
+  create_check:
+    description: "If set to true, the action will create it's own check on the commit, rather than the default created by GitHub Action. Must be a GitHub App token"
+    required: false
+    default: "false"
 outputs:
   time:
-    description: 'Your output description here'
+    description: "Your output description here"
 
 runs:
   using: node20
