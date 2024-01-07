@@ -23,8 +23,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sanitizedInputs = void 0;
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
+const validators_1 = require("./validators");
 function inputsParser() {
     const eventName = github.context.eventName;
     const validPullRequestEvents = ["pull_request", "pull_request_target"];
@@ -33,7 +35,7 @@ function inputsParser() {
         headSha = github.context.payload.pull_request?.head.sha;
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
-    const checks = core.getInput("checks") == "-1" ? [] : core.getInput("checks").split(",");
+    const checksInclude = core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
     const checksExclude = core.getInput("checks_exclude") == "-1"
         ? []
         : core.getInput("checks_exclude").split(",");
@@ -41,11 +43,13 @@ function inputsParser() {
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
-    const delay = validateIntervalValues(parseInt(core.getInput("delay")));
-    const pollingInterval = validateIntervalValues(parseInt(core.getInput("polling_interval")));
+    const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
+    const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
+    const failStep = core.getInput("fail_step") == "true";
+    const failFast = core.getInput("fail_fast") == "true";
     return {
         commitSHA,
-        checks,
+        checksInclude,
         checksExclude,
         treatSkippedAsPassed,
         createCheck,
@@ -53,17 +57,9 @@ function inputsParser() {
         poll,
         delay,
         pollingInterval,
+        failStep,
+        failFast,
     };
 }
-exports.default = inputsParser;
-function validateIntervalValues(value) {
-    const maxInterval = 360;
-    if (isNaN(value) || value < 0) {
-        return 1;
-    }
-    if (value > maxInterval) {
-        return maxInterval;
-    }
-    return value;
-}
+exports.sanitizedInputs = inputsParser();
 //# sourceMappingURL=inputsExtractor.js.map

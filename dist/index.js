@@ -3282,66 +3282,6 @@ paginateRest.VERSION = VERSION;
 
 /***/ }),
 
-/***/ 8883:
-/***/ ((module) => {
-
-"use strict";
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  requestLog: () => requestLog
-});
-module.exports = __toCommonJS(dist_src_exports);
-
-// pkg/dist-src/version.js
-var VERSION = "4.0.0";
-
-// pkg/dist-src/index.js
-function requestLog(octokit) {
-  octokit.hook.wrap("request", (request, options) => {
-    octokit.log.debug("request", options);
-    const start = Date.now();
-    const requestOptions = octokit.request.endpoint.parse(options);
-    const path = requestOptions.url.replace(options.baseUrl, "");
-    return request(options).then((response) => {
-      octokit.log.info(
-        `${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`
-      );
-      return response;
-    }).catch((error) => {
-      octokit.log.info(
-        `${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`
-      );
-      throw error;
-    });
-  });
-}
-requestLog.VERSION = VERSION;
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
 /***/ 3044:
 /***/ ((module) => {
 
@@ -5767,57 +5707,6 @@ var request = withDefaults(import_endpoint.endpoint, {
   headers: {
     "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
   }
-});
-// Annotate the CommonJS export names for ESM import in node:
-0 && (0);
-
-
-/***/ }),
-
-/***/ 5375:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// pkg/dist-src/index.js
-var dist_src_exports = {};
-__export(dist_src_exports, {
-  Octokit: () => Octokit
-});
-module.exports = __toCommonJS(dist_src_exports);
-var import_core = __nccwpck_require__(6762);
-var import_plugin_request_log = __nccwpck_require__(8883);
-var import_plugin_paginate_rest = __nccwpck_require__(4193);
-var import_plugin_rest_endpoint_methods = __nccwpck_require__(3044);
-
-// pkg/dist-src/version.js
-var VERSION = "20.0.2";
-
-// pkg/dist-src/index.js
-var Octokit = import_core.Octokit.plugin(
-  import_plugin_request_log.requestLog,
-  import_plugin_rest_endpoint_methods.legacyRestEndpointMethods,
-  import_plugin_paginate_rest.paginateRest
-).defaults({
-  userAgent: `octokit-rest.js/${VERSION}`
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
@@ -29017,70 +28906,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 1935:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getAllStatusCommits = exports.getAllChecks = void 0;
-const octokit_1 = __nccwpck_require__(3409);
-async function getAllChecks(owner, repo, ref) {
-    try {
-        let checks = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/check-runs", {
-            owner,
-            repo,
-            ref,
-        });
-        return checks;
-    }
-    catch (error) {
-        throw new Error("Error getting all checks: " + error.message);
-    }
-}
-exports.getAllChecks = getAllChecks;
-async function getAllStatusCommits(owner, repo, ref) {
-    try {
-        let statuses = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/statuses", {
-            owner,
-            repo,
-            ref,
-        });
-        return statuses;
-    }
-    catch (error) {
-        throw new Error("Error getting all statuses: " + error.message);
-    }
-}
-exports.getAllStatusCommits = getAllStatusCommits;
-// export async function createCheckRun(
-//   owner: string,
-//   repo: string,
-//   head_sha: string,
-//   name: string,
-//   status: string,
-//   conclusion: string,
-//   output: any
-// ) {
-//   try {
-//     let check = await restClient.checks.create({
-//       owner,
-//       repo,
-//       head_sha,
-//       name,
-//       status,
-//       conclusion,
-//       output,
-//     });
-//     return check;
-//   } catch (error: any) {
-//     throw new Error("Error creating check: " + error.message);
-//   }
-// }
-
-
-/***/ }),
-
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -29109,15 +28934,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const checks_1 = __nccwpck_require__(1935);
-const inputsExtractor_1 = __importDefault(__nccwpck_require__(6222));
+const inputsExtractor_1 = __nccwpck_require__(6222);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -29127,14 +28948,17 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-        const sha = (0, inputsExtractor_1.default)().commitSHA;
-        const allChecks = await (0, checks_1.getAllChecks)(owner, repo, sha);
-        console.log("All checks: " + JSON.stringify(allChecks));
+        console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
+        console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
+        // const allChecks = await getAllChecks(owner, repo, sha);
+        // console.log("All checks: " + JSON.stringify(allChecks));
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
+        if (error instanceof Error) {
             core.setFailed(error.message);
+        }
+        ;
     }
 }
 exports.run = run;
@@ -29171,8 +28995,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.sanitizedInputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
+const validators_1 = __nccwpck_require__(1300);
 function inputsParser() {
     const eventName = github.context.eventName;
     const validPullRequestEvents = ["pull_request", "pull_request_target"];
@@ -29181,7 +29007,7 @@ function inputsParser() {
         headSha = github.context.payload.pull_request?.head.sha;
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
-    const checks = core.getInput("checks") == "-1" ? [] : core.getInput("checks").split(",");
+    const checksInclude = core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
     const checksExclude = core.getInput("checks_exclude") == "-1"
         ? []
         : core.getInput("checks_exclude").split(",");
@@ -29189,11 +29015,13 @@ function inputsParser() {
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
-    const delay = validateIntervalValues(parseInt(core.getInput("delay")));
-    const pollingInterval = validateIntervalValues(parseInt(core.getInput("polling_interval")));
+    const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
+    const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
+    const failStep = core.getInput("fail_step") == "true";
+    const failFast = core.getInput("fail_fast") == "true";
     return {
         commitSHA,
-        checks,
+        checksInclude,
         checksExclude,
         treatSkippedAsPassed,
         createCheck,
@@ -29201,9 +29029,22 @@ function inputsParser() {
         poll,
         delay,
         pollingInterval,
+        failStep,
+        failFast,
     };
 }
-exports["default"] = inputsParser;
+exports.sanitizedInputs = inputsParser();
+
+
+/***/ }),
+
+/***/ 1300:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.validateIntervalValues = void 0;
 function validateIntervalValues(value) {
     const maxInterval = 360;
     if (isNaN(value) || value < 0) {
@@ -29214,54 +29055,7 @@ function validateIntervalValues(value) {
     }
     return value;
 }
-
-
-/***/ }),
-
-/***/ 3409:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restClient = void 0;
-const octokit = __importStar(__nccwpck_require__(5375));
-const core = __importStar(__nccwpck_require__(2186));
-var restClient = new octokit.Octokit({
-    auth: core.getInput("token"),
-    userAgent: "allcheckspassed-action",
-    baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
-    log: {
-        debug: console.debug,
-        info: console.info,
-        warn: console.warn,
-        error: console.error,
-    },
-});
-exports.restClient = restClient;
+exports.validateIntervalValues = validateIntervalValues;
 
 
 /***/ }),

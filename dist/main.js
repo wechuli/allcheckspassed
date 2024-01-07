@@ -22,15 +22,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
-const checks_1 = require("./checks/checks");
-const inputsExtractor_1 = __importDefault(require("./utils/inputsExtractor"));
+const inputsExtractor_1 = require("./utils/inputsExtractor");
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -40,14 +36,17 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-        const sha = (0, inputsExtractor_1.default)().commitSHA;
-        const allChecks = await (0, checks_1.getAllChecks)(owner, repo, sha);
-        console.log("All checks: " + JSON.stringify(allChecks));
+        console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
+        console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
+        // const allChecks = await getAllChecks(owner, repo, sha);
+        // console.log("All checks: " + JSON.stringify(allChecks));
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
+        if (error instanceof Error) {
             core.setFailed(error.message);
+        }
+        ;
     }
 }
 exports.run = run;
