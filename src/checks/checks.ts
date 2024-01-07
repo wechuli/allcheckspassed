@@ -1,62 +1,64 @@
-import { restClient } from "../utils/octokit";
 
-export async function getAllChecks(owner: string, repo: string, ref: string) {
-  try {
-    let checks = await restClient.paginate(
-      "GET /repos/:owner/:repo/commits/:ref/check-runs",
-      {
-        owner,
-        repo,
-        ref,
-      }
-    );
-    return checks;
-  } catch (error: any) {
-    throw new Error("Error getting all checks: " + error.message);
-  }
+import { IInputs} from '../utils/inputsExtractor';
+import { restClient } from '../utils/octokit';
+import {getAllChecks,getAllStatusCommits,createCheckRun} from './checksAPI';
+
+interface IRepo{
+    owner: string;
+    repo: string;
 }
 
-export async function getAllStatusCommits(
-  owner: string,
-  repo: string,
-  ref: string
-) {
-  try {
-    let statuses = await restClient.paginate(
-      "GET /repos/:owner/:repo/commits/:ref/statuses",
-      {
-        owner,
-        repo,
-        ref,
-      }
-    );
-    return statuses;
-  } catch (error: any) {
-    throw new Error("Error getting all statuses: " + error.message);
-  }
-}
+class Checks{
+    // data
+    private allChecks: any;
+    private allStatuses: any;
+    private allChecksPassed: boolean = false;
+    private allStatusesPassed: boolean = false;
 
-// export async function createCheckRun(
-//   owner: string,
-//   repo: string,
-//   head_sha: string,
-//   name: string,
-//   status: string,
-//   conclusion: string,
-//   output: any
-// ) {
-//   try {
-//     let check = await restClient.checks.create({
-//       owner,
-//       repo,
-//       head_sha,
-//       name,
-//       status,
-//       conclusion,
-//       output,
-//     });
-//     return check;
-//   } catch (error: any) {
-//     throw new Error("Error creating check: " + error.message);
-//   }
-// }
+    // inputs
+    private owner: string;
+    private repo: string;
+    private ref: string;
+    private checksExclude: string[];
+    private checksInclude: string[];
+    private treatSkippedAsPassed: boolean;
+    private createCheck: boolean;
+    private includeCommitStatuses: boolean;
+    private poll: boolean;
+    private delay: number;
+    private pollingInterval: number;
+    private failStep: boolean;
+
+    constructor(props: IRepo & IInputs){
+        this.owner = props.owner;
+        this.repo = props.repo;
+        this.ref = props.commitSHA;
+        this.checksExclude = props.checksExclude;
+        this.checksInclude = props.checksInclude;
+        this.treatSkippedAsPassed = props.treatSkippedAsPassed;
+        this.createCheck = props.createCheck;
+        this.includeCommitStatuses = props.includeCommitStatuses;
+        this.poll = props.poll;
+        this.delay = props.delay;
+        this.pollingInterval = props.pollingInterval;
+        this.failStep = props.failStep;
+
+    }
+
+    async fetchAllChecks(){
+        try {
+            this.allChecks = await getAllChecks(this.owner, this.repo, this.ref);
+        } catch (error: any) {
+            throw new Error("Error getting all checks: " + error.message);
+        }
+    }
+
+    async fetchAllStatusCommits(){
+        try {
+            this.allStatuses = await getAllStatusCommits(this.owner, this.repo, this.ref);
+        } catch (error: any) {
+            throw new Error("Error getting all statuses: " + error.message);
+        }
+    }
+
+}

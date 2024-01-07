@@ -1,14 +1,15 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { validateIntervalValues } from "./validators";
 
 /**
  * Parses the inputs for the action.
  * @returns {object} The parsed inputs.
  */
 
-interface Iinputs {
+export interface IInputs {
   commitSHA: string;
-  checks: string[];
+  checksInclude: string[];
   checksExclude: string[];
   treatSkippedAsPassed: boolean;
   createCheck: boolean;
@@ -16,8 +17,10 @@ interface Iinputs {
   poll: boolean;
   delay: number;
   pollingInterval: number;
+  failStep: boolean;
+  failFast: boolean;
 }
-export default function inputsParser(): Iinputs {
+ function inputsParser(): IInputs {
   const eventName = github.context.eventName;
   const validPullRequestEvents = ["pull_request", "pull_request_target"];
   let headSha: string | undefined = undefined;
@@ -27,8 +30,8 @@ export default function inputsParser(): Iinputs {
   const commitSHA: string =
     core.getInput("commit_sha") || headSha || github.context.sha;
 
-  const checks: string[] =
-    core.getInput("checks") == "-1" ? [] : core.getInput("checks").split(",");
+  const checksInclude: string[] =
+    core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
   const checksExclude: string[] =
     core.getInput("checks_exclude") == "-1"
       ? []
@@ -46,9 +49,12 @@ export default function inputsParser(): Iinputs {
     parseInt(core.getInput("polling_interval"))
   );
 
+  const failStep: boolean = core.getInput("fail_step") == "true";
+  const failFast: boolean = core.getInput("fail_fast") == "true";
+
   return {
     commitSHA,
-    checks,
+    checksInclude,
     checksExclude,
     treatSkippedAsPassed,
     createCheck,
@@ -56,16 +62,11 @@ export default function inputsParser(): Iinputs {
     poll,
     delay,
     pollingInterval,
+    failStep,
+    failFast,
   };
 }
 
-function validateIntervalValues(value: number): number {
-  const maxInterval = 360;
-  if (isNaN(value) || value < 0) {
-    return 1;
-  }
-  if (value > maxInterval) {
-    return maxInterval;
-  }
-  return value;
-}
+const sanitizedInputs = inputsParser();
+
+export { sanitizedInputs };
