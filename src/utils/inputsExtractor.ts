@@ -9,8 +9,8 @@ import { validateIntervalValues } from "./validators";
 
 export interface IInputs {
   commitSHA: string;
-  checksInclude: IminimalCheck [];
-  checksExclude: IminimalCheck [];
+  checksInclude: IminimalCheck [] | any[];
+  checksExclude: IminimalCheck [] | any[];
   treatSkippedAsPassed: boolean;
   createCheck: boolean;
   includeCommitStatuses: boolean;
@@ -68,7 +68,7 @@ interface IminimalCheck{
   };
 }
 
-function parseChecksArray(input: string): IminimalCheck[] {
+function parseChecksArray(input: string): IminimalCheck[] | any[] {
 
     try{
 
