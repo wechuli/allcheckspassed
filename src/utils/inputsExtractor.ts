@@ -69,35 +69,44 @@ interface IminimalCheck{
 }
 
 function parseChecksArray(input: string): IminimalCheck[] {
-    // Return an empty array if the input is "-1"
-    if (input === "-1") {
-        return [];
+
+    try{
+
+        // Return an empty array if the input is "-1"
+        if (input === "-1") {
+            return [];
+        }
+
+        // Trim the input to remove any leading/trailing whitespace
+        const trimmedInput = input.trim();
+
+        // Check if the input starts with '[{', indicating a JSON array of objects
+        if (trimmedInput.startsWith('[{') && trimmedInput.endsWith('}]')) {
+            return JSON.parse(trimmedInput);
+        }
+
+        // Check if the input starts with a '{', indicating a JSON-like object
+        else if (trimmedInput.startsWith('{')) {
+            // Split the string by '},{', then add the missing braces back to each element
+            return trimmedInput.split('},{').map(element => {
+                if (!element.startsWith('{')) element = '{' + element;
+                if (!element.endsWith('}')) element = element + '}';
+                return JSON.parse(element);
+            });
+        }
+
+        // Otherwise, assume it's a comma-separated list
+        else {
+            return trimmedInput.split(',').map(element => {
+                return {name: element.trim(),app_id: -1};
+            });
+        }
+
+    }
+    catch(error:any){
+        throw new Error("Error parsing checks array: " + error.message);
     }
 
-    // Trim the input to remove any leading/trailing whitespace
-    const trimmedInput = input.trim();
-
-    // Check if the input starts with '[{', indicating a JSON array of objects
-    if (trimmedInput.startsWith('[{') && trimmedInput.endsWith('}]')) {
-        return JSON.parse(trimmedInput);
-    }
-
-    // Check if the input starts with a '{', indicating a JSON-like object
-    else if (trimmedInput.startsWith('{')) {
-        // Split the string by '},{', then add the missing braces back to each element
-        return trimmedInput.split('},{').map(element => {
-            if (!element.startsWith('{')) element = '{' + element;
-            if (!element.endsWith('}')) element = element + '}';
-            return JSON.parse(element);
-        });
-    }
-
-    // Otherwise, assume it's a comma-separated list
-    else {
-        return trimmedInput.split(',').map(element => {
-           return {name: element.trim(),app_id: -1};
-        });
-    }
 }
 
 export const sanitizedInputs = inputsParser();
