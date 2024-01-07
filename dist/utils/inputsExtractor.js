@@ -35,8 +35,8 @@ function inputsParser() {
         headSha = github.context.payload.pull_request?.head.sha;
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
-    const checksInclude = parseChecksArray(core.getInput("checks_include"));
-    const checksExclude = parseChecksArray(core.getInput("checks_exclude"));
+    const checksInclude = parseChecksArray(core.getInput("checks_include"), "checks_include");
+    const checksExclude = parseChecksArray(core.getInput("checks_exclude"), "checks_exclude");
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
@@ -59,30 +59,26 @@ function inputsParser() {
         failFast,
     };
 }
-function parseChecksArray(input) {
+function parseChecksArray(input, inputType = "checks_include") {
     try {
-        // Return an empty array if the input is "-1"
-        if (input === "-1") {
+        const trimmedInput = input.trim();
+        if (trimmedInput === "-1") {
             return [];
         }
-        // Trim the input to remove any leading/trailing whitespace
-        const trimmedInput = input.trim();
-        // Check if the input starts with '[{', indicating a JSON array of objects
-        if (trimmedInput.startsWith('[{') && trimmedInput.endsWith('}]')) {
-            return JSON.parse(trimmedInput);
+        if (trimmedInput.startsWith("{") && trimmedInput.endsWith("}")) {
+            let parsedInput = JSON.parse("[" + trimmedInput + "]");
+            if (!validateCheckInputs(parsedInput)) {
+                throw new Error();
+            }
+            return parsedInput;
         }
-        // Check if the input starts with a '{', indicating a JSON-like object
-        else if (trimmedInput.startsWith('{')) {
-            // Split the string by '},{', then add the missing braces back to each element
-            return trimmedInput.split('},{').map(element => {
-                if (!element.startsWith('{'))
-                    element = '{' + element;
-                if (!element.endsWith('}'))
-                    element = element + '}';
-                return JSON.parse(element);
-            });
+        if (trimmedInput.startsWith("[") && trimmedInput.endsWith("]")) {
+            let parsedInput = JSON.parse(trimmedInput);
+            if (!validateCheckInputs(parsedInput)) {
+                throw new Error();
+            }
+            return parsedInput;
         }
-        // Otherwise, assume it's a comma-separated list
         else {
             return trimmedInput.split(',').map(element => {
                 return { name: element.trim(), app_id: -1 };
@@ -90,8 +86,14 @@ function parseChecksArray(input) {
         }
     }
     catch (error) {
-        throw new Error("Error parsing checks array: " + error.message);
+        throw new Error(`Error parsing the ${inputType} input, please provide a comma-separated list of check names, or a valid JSON array of objects with the properties "name" and "app_id"`);
     }
+}
+function isValidCheckInput(object) {
+    return typeof object.name === 'string' && typeof object.app_id === 'number';
+}
+function validateCheckInputs(array) {
+    return array.every(isValidCheckInput);
 }
 exports.sanitizedInputs = inputsParser();
 //# sourceMappingURL=inputsExtractor.js.map
