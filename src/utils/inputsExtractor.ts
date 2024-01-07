@@ -67,6 +67,6 @@ export interface IInputs {
   };
 }
 
-const sanitizedInputs = inputsParser();
+export const sanitizedInputs = inputsParser();
 
-export { sanitizedInputs };
+

@@ -1,7 +1,5 @@
 import { ICheck,IStatus} from './checksInterfaces';
 export function filterChecksByName(checks:ICheck[], name:string) {
-
-  //   the string could be a regex
     const regex = new RegExp(name);
     return checks.filter((check) => regex.test(check.name));
 }

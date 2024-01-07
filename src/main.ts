@@ -16,6 +16,7 @@ export async function run(): Promise<void> {
     console.log(sanitizedInputs.checksInclude)
     console.log(sanitizedInputs.checksExclude)
 
+
     // const allChecks = await getAllChecks(owner, repo, sha);
     // console.log("All checks: " + JSON.stringify(allChecks));
   } catch (error) {
