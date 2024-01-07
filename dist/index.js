@@ -28948,6 +28948,8 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
+        console.log(core.getInput("checks_include"));
+        console.log(core.getInput("checks_exclude"));
         console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
         console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
         // const allChecks = await getAllChecks(owner, repo, sha);
@@ -29008,9 +29010,7 @@ function inputsParser() {
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
     const checksInclude = core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
-    const checksExclude = core.getInput("checks_exclude") == "-1"
-        ? []
-        : core.getInput("checks_exclude").split(",");
+    const checksExclude = core.getInput("checks_exclude") == "-1" ? [] : core.getInput("checks_exclude").split(",");
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
