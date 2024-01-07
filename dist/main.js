@@ -36,8 +36,8 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-        console.log(JSON.parse(core.getInput("checks_include")));
-        console.log(JSON.parse(core.getInput("checks_exclude")));
+        // console.log(JSON.parse(core.getInput("checks_include")));
+        // console.log(JSON.parse(core.getInput("checks_exclude")));
         console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
         console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
         // const allChecks = await getAllChecks(owner, repo, sha);
