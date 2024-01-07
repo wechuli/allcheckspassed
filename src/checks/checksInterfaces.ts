@@ -22,3 +22,8 @@ export interface IStatus{
     created_at: string;
     updated_at: string;
 }
+
+export interface ICheckInput{
+    name: string;
+    app_id: number;
+}

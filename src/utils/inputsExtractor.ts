@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { validateIntervalValues } from "./validators";
+import {ICheckInput} from '../checks/checksInterfaces';
 
 /**
  * Parses the inputs for the action.
@@ -9,8 +10,8 @@ import { validateIntervalValues } from "./validators";
 
 export interface IInputs {
   commitSHA: string;
-  checksInclude: IminimalCheck [] | any[];
-  checksExclude: IminimalCheck [] | any[];
+  checksInclude: ICheckInput [];
+  checksExclude: ICheckInput [];
   treatSkippedAsPassed: boolean;
   createCheck: boolean;
   includeCommitStatuses: boolean;
@@ -20,10 +21,7 @@ export interface IInputs {
   failStep: boolean;
   failFast: boolean;
 }
-interface IminimalCheck{
-    name: string;
-    app_id: number;
-}
+
  function inputsParser(): IInputs {
   const eventName = github.context.eventName;
   const validPullRequestEvents = ["pull_request", "pull_request_target"];
@@ -34,8 +32,8 @@ interface IminimalCheck{
   const commitSHA: string =
     core.getInput("commit_sha") || headSha || github.context.sha;
 
-  const checksInclude: IminimalCheck[] = parseChecksArray(core.getInput("checks_include"));
-  const checksExclude: IminimalCheck[] =
+  const checksInclude: ICheckInput[] = parseChecksArray(core.getInput("checks_include"));
+  const checksExclude: ICheckInput[] =
     parseChecksArray(core.getInput("checks_exclude")) ;
   const treatSkippedAsPassed: boolean =
     core.getInput("treat_skipped_as_passed") == "true";
@@ -68,7 +66,7 @@ interface IminimalCheck{
   };
 }
 
-function parseChecksArray(input: string): IminimalCheck[] | any[] {
+function parseChecksArray(input: string): ICheckInput[]{
 
     try{
 

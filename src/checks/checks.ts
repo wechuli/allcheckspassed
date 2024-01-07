@@ -2,6 +2,7 @@
 import { IInputs} from '../utils/inputsExtractor';
 import { restClient } from '../utils/octokit';
 import {getAllChecks,getAllStatusCommits,createCheckRun} from './checksAPI';
+import { ICheckInput } from './checksInterfaces';
 
 interface IRepo{
     owner: string;
@@ -19,8 +20,8 @@ class Checks{
     private owner: string;
     private repo: string;
     private ref: string;
-    private checksExclude: string[];
-    private checksInclude: string[];
+    private checksExclude: ICheckInput[];
+    private checksInclude: ICheckInput[];
     private treatSkippedAsPassed: boolean;
     private createCheck: boolean;
     private includeCommitStatuses: boolean;
