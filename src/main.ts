@@ -13,6 +13,9 @@ export async function run(): Promise<void> {
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
 
+    console.log(core.getInput("checks_include"))
+    console.log(core.getInput("checks_exclude"))
+
     console.log(sanitizedInputs.checksInclude)
     console.log(sanitizedInputs.checksExclude)
 

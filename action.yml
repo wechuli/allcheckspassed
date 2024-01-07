@@ -12,12 +12,12 @@ inputs:
     description: "The GitHub token to use for authentication"
     required: false
     default: ${{ github.token }}
-  checks:
-    description: "A comma separated list of checks to check"
+  checks_include:
+    description: "A comma separated list of checks to include in the evaluation, by default, all checks are included. You can provide a list of map keys, with app_id and check_name, to include only checks from a specific app, or with a specific name. Supports regex"
     required: false
     default: "-1"
   checks_exclude:
-    description: "A comma separated list of checks to exclude, if this checks fail,the action will not fail"
+    description: "A comma separated list of checks to exclude, if these checks fail,the action will not fail"
     required: false
     default: "-1"
   treat_skipped_as_passed:
@@ -31,7 +31,7 @@ inputs:
   include_commit_statuses:
     description: "If set to true, the action will include commit statuses in the check, checks and commit statuses have different APIs"
     required: false
-    default: "true"
+    default: "false"
   poll:
     description: "Whether to poll the API for completed checks or to simply check once and exit"
     required: false
@@ -44,9 +44,19 @@ inputs:
     description: "The period in minutes between API calls that polls the GitHub Api for completed checks, shorter intervals may result in API rate limiting"
     required: false
     default: "1"
+  fail_step:
+    description: "If set to true, the action will fail if the evaluation of the checks fails"
+    required: false
+    default: "true"
+  fail_fast:
+    description: "If set to true, the action will fail as soon as one of the checks reports as failed, default is false, which means it will wait for all checks to be completed"
+    required: false
+    default: "false"
 outputs:
-  time:
-    description: "Your output description here"
+  checks:
+    description: "List of checks that were checked"
+  status:
+    description: "The status of the evaluation of the checks"
 
 runs:
   using: node20

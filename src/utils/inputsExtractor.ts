@@ -33,9 +33,7 @@ export interface IInputs {
   const checksInclude: string[] =
     core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
   const checksExclude: string[] =
-    core.getInput("checks_exclude") == "-1"
-      ? []
-      : core.getInput("checks_exclude").split(",");
+    core.getInput("checks_exclude") == "-1" ? [] : core.getInput("checks_exclude").split(",");
   const treatSkippedAsPassed: boolean =
     core.getInput("treat_skipped_as_passed") == "true";
   const createCheck: boolean = core.getInput("create_check") == "true";
