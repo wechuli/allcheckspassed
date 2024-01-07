@@ -9,8 +9,8 @@ import { validateIntervalValues } from "./validators";
 
 export interface IInputs {
   commitSHA: string;
-  checksInclude: string[];
-  checksExclude: string[];
+  checksInclude: IminimalCheck [];
+  checksExclude: IminimalCheck [];
   treatSkippedAsPassed: boolean;
   createCheck: boolean;
   includeCommitStatuses: boolean;
@@ -19,6 +19,10 @@ export interface IInputs {
   pollingInterval: number;
   failStep: boolean;
   failFast: boolean;
+}
+interface IminimalCheck{
+    name: string;
+    app_id: number;
 }
  function inputsParser(): IInputs {
   const eventName = github.context.eventName;
@@ -30,10 +34,9 @@ export interface IInputs {
   const commitSHA: string =
     core.getInput("commit_sha") || headSha || github.context.sha;
 
-  const checksInclude: string[] =
-    core.getInput("checks_include") == "-1" ? [] : core.getInput("checks_include").split(",");
-  const checksExclude: string[] =
-    core.getInput("checks_exclude") == "-1" ? [] : core.getInput("checks_exclude").split(",");
+  const checksInclude: IminimalCheck[] = parseChecksArray(core.getInput("checks_include"));
+  const checksExclude: IminimalCheck[] =
+    parseChecksArray(core.getInput("checks_exclude")) ;
   const treatSkippedAsPassed: boolean =
     core.getInput("treat_skipped_as_passed") == "true";
   const createCheck: boolean = core.getInput("create_check") == "true";
@@ -63,6 +66,38 @@ export interface IInputs {
     failStep,
     failFast,
   };
+}
+
+function parseChecksArray(input: string): IminimalCheck[] {
+    // Return an empty array if the input is "-1"
+    if (input === "-1") {
+        return [];
+    }
+
+    // Trim the input to remove any leading/trailing whitespace
+    const trimmedInput = input.trim();
+
+    // Check if the input starts with '[{', indicating a JSON array of objects
+    if (trimmedInput.startsWith('[{') && trimmedInput.endsWith('}]')) {
+        return JSON.parse(trimmedInput);
+    }
+
+    // Check if the input starts with a '{', indicating a JSON-like object
+    else if (trimmedInput.startsWith('{')) {
+        // Split the string by '},{', then add the missing braces back to each element
+        return trimmedInput.split('},{').map(element => {
+            if (!element.startsWith('{')) element = '{' + element;
+            if (!element.endsWith('}')) element = element + '}';
+            return JSON.parse(element);
+        });
+    }
+
+    // Otherwise, assume it's a comma-separated list
+    else {
+        return trimmedInput.split(',').map(element => {
+           return {name: element.trim(),app_id: -1};
+        });
+    }
 }
 
 export const sanitizedInputs = inputsParser();
