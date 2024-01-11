@@ -44,8 +44,6 @@ class Checks {
     }
     async fetchAllChecks() {
         try {
-            const allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
-            console.log(`all checks from there: ${JSON.stringify(allChecks)}`);
             this.allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
         }
         catch (error) {
@@ -68,7 +66,6 @@ class Checks {
         }
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
-            console.log("am here");
             this.filteredChecks = [...this.allChecks];
             return;
         }

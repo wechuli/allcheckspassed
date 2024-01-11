@@ -42,7 +42,7 @@ async function run() {
         const repo = github.context.repo.repo;
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
-        checks.runLogic();
+        await checks.runLogic();
         console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
         console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
     }
