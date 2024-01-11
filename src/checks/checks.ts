@@ -79,7 +79,7 @@ export default class Checks{
     async filterChecks(){
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
         let ambigousChecks = checkOneOfTheChecksInputIsEmpty(this.checksInclude,this.checksExclude);
-        if(ambigousChecks){
+        if(!ambigousChecks){
             throw new Error("You cannot define both checks_include and checks_exclude inputs, please use only one of them");
         }
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
