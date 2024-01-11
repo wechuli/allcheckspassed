@@ -66,6 +66,7 @@ class Checks {
         }
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
+            console.log("am here");
             this.filteredChecks = [...this.allChecks];
             return;
         }
@@ -77,10 +78,12 @@ class Checks {
             let missingChecks = firstPassthrough["missingChecks"];
             this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(filteredChecks);
             this.missingChecks = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
+            return;
         }
         if (!this.checksExclude) {
             let firstPassthrough = (0, checksFilters_1.removeChecksWithMatchingNameAndAppId)(this.allChecks, this.checksExclude);
             this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
+            return;
         }
     }
     ;
