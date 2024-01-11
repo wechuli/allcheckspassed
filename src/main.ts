@@ -16,7 +16,7 @@ export async function run(): Promise<void> {
     const inputs = sanitizedInputs;
 
     const checks = new Checks({...inputs, owner, repo});
-    checks.runLogic();
+    await checks.runLogic();
 
     console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
 

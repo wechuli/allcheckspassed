@@ -62,8 +62,6 @@ export default class Checks{
 
     async fetchAllChecks(){
         try {
-            const allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
-            console.log(`all checks from there: ${JSON.stringify(allChecks)}`);
             this.allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
         } catch (error: any) {
             throw new Error("Error getting all checks: " + error.message);
@@ -87,7 +85,6 @@ export default class Checks{
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
 
         if(this.checksInclude.length === 0 && this.checksExclude.length === 0){
-console.log("am here");
             this.filteredChecks = [...this.allChecks];
             return;
         }
