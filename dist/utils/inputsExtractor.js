@@ -23,10 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sanitizedInputs = void 0;
+exports.sanitizedInputs = exports.validateCheckInputs = exports.isValidCheckInput = exports.parseChecksArray = void 0;
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 const validators_1 = require("./validators");
+const checksFilters_1 = require("../checks/checksFilters");
 function inputsParser() {
     const eventName = github.context.eventName;
     const validPullRequestEvents = ["pull_request", "pull_request_target"];
@@ -35,14 +36,15 @@ function inputsParser() {
         headSha = github.context.payload.pull_request?.head.sha;
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
-    const checksInclude = parseChecksArray(core.getInput("checks_include"), "checks_include");
-    const checksExclude = parseChecksArray(core.getInput("checks_exclude"), "checks_exclude");
+    const checksInclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_include"), "checks_include"));
+    const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
+    const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     const failStep = core.getInput("fail_step") == "true";
     const failFast = core.getInput("fail_fast") == "true";
     return {
@@ -57,6 +59,7 @@ function inputsParser() {
         pollingInterval,
         failStep,
         failFast,
+        retries
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
@@ -65,14 +68,15 @@ function parseChecksArray(input, inputType = "checks_include") {
         if (trimmedInput === "-1") {
             return [];
         }
-        if (trimmedInput.startsWith("{") && trimmedInput.endsWith("}")) {
+        // attempt to parse as JSON if it starts with { or [
+        if (trimmedInput.startsWith("{")) {
             let parsedInput = JSON.parse("[" + trimmedInput + "]");
             if (!validateCheckInputs(parsedInput)) {
                 throw new Error();
             }
             return parsedInput;
         }
-        if (trimmedInput.startsWith("[") && trimmedInput.endsWith("]")) {
+        if (trimmedInput.startsWith("[")) {
             let parsedInput = JSON.parse(trimmedInput);
             if (!validateCheckInputs(parsedInput)) {
                 throw new Error();
@@ -89,11 +93,14 @@ function parseChecksArray(input, inputType = "checks_include") {
         throw new Error(`Error parsing the ${inputType} input, please provide a comma-separated list of check names, or a valid JSON array of objects with the properties "name" and "app_id"`);
     }
 }
+exports.parseChecksArray = parseChecksArray;
 function isValidCheckInput(object) {
     return typeof object.name === 'string' && typeof object.app_id === 'number';
 }
+exports.isValidCheckInput = isValidCheckInput;
 function validateCheckInputs(array) {
     return array.every(isValidCheckInput);
 }
+exports.validateCheckInputs = validateCheckInputs;
 exports.sanitizedInputs = inputsParser();
 //# sourceMappingURL=inputsExtractor.js.map

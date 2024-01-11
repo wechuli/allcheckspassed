@@ -3282,6 +3282,66 @@ paginateRest.VERSION = VERSION;
 
 /***/ }),
 
+/***/ 8883:
+/***/ ((module) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  requestLog: () => requestLog
+});
+module.exports = __toCommonJS(dist_src_exports);
+
+// pkg/dist-src/version.js
+var VERSION = "4.0.0";
+
+// pkg/dist-src/index.js
+function requestLog(octokit) {
+  octokit.hook.wrap("request", (request, options) => {
+    octokit.log.debug("request", options);
+    const start = Date.now();
+    const requestOptions = octokit.request.endpoint.parse(options);
+    const path = requestOptions.url.replace(options.baseUrl, "");
+    return request(options).then((response) => {
+      octokit.log.info(
+        `${requestOptions.method} ${path} - ${response.status} in ${Date.now() - start}ms`
+      );
+      return response;
+    }).catch((error) => {
+      octokit.log.info(
+        `${requestOptions.method} ${path} - ${error.status} in ${Date.now() - start}ms`
+      );
+      throw error;
+    });
+  });
+}
+requestLog.VERSION = VERSION;
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
 /***/ 3044:
 /***/ ((module) => {
 
@@ -5707,6 +5767,57 @@ var request = withDefaults(import_endpoint.endpoint, {
   headers: {
     "user-agent": `octokit-request.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
   }
+});
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
+
+
+/***/ }),
+
+/***/ 5375:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  Octokit: () => Octokit
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_core = __nccwpck_require__(6762);
+var import_plugin_request_log = __nccwpck_require__(8883);
+var import_plugin_paginate_rest = __nccwpck_require__(4193);
+var import_plugin_rest_endpoint_methods = __nccwpck_require__(3044);
+
+// pkg/dist-src/version.js
+var VERSION = "20.0.2";
+
+// pkg/dist-src/index.js
+var Octokit = import_core.Octokit.plugin(
+  import_plugin_request_log.requestLog,
+  import_plugin_rest_endpoint_methods.legacyRestEndpointMethods,
+  import_plugin_paginate_rest.paginateRest
+).defaults({
+  userAgent: `octokit-rest.js/${VERSION}`
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
@@ -28906,6 +29017,320 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 1935:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const checksAPI_1 = __nccwpck_require__(2342);
+const checksFilters_1 = __nccwpck_require__(5319);
+class Checks {
+    // data
+    allChecks = [];
+    allStatuses = [];
+    filteredChecks = [];
+    filteredStatuses = [];
+    allChecksPassed = false;
+    allStatusesPassed = false;
+    missingChecks = [];
+    // inputs
+    owner;
+    repo;
+    ref;
+    checksExclude;
+    checksInclude;
+    treatSkippedAsPassed;
+    createCheck;
+    includeCommitStatuses;
+    poll;
+    delay;
+    retries;
+    pollingInterval;
+    failStep;
+    failFast;
+    constructor(props) {
+        this.owner = props.owner;
+        this.repo = props.repo;
+        this.ref = props.commitSHA;
+        this.checksExclude = props.checksExclude;
+        this.checksInclude = props.checksInclude;
+        this.treatSkippedAsPassed = props.treatSkippedAsPassed;
+        this.createCheck = props.createCheck;
+        this.includeCommitStatuses = props.includeCommitStatuses;
+        this.poll = props.poll;
+        this.delay = props.delay;
+        this.pollingInterval = props.pollingInterval;
+        this.failStep = props.failStep;
+        this.failFast = props.failFast;
+        this.retries = props.retries;
+    }
+    async fetchAllChecks() {
+        try {
+            this.allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
+        }
+        catch (error) {
+            throw new Error("Error getting all checks: " + error.message);
+        }
+    }
+    async fetchAllStatusCommits() {
+        try {
+            this.allStatuses = await (0, checksAPI_1.getAllStatusCommits)(this.owner, this.repo, this.ref);
+        }
+        catch (error) {
+            throw new Error("Error getting all statuses: " + error.message);
+        }
+    }
+    async filterChecks() {
+        // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
+        let ambigousChecks = (0, checksFilters_1.checkOneOfTheChecksInputIsEmpty)(this.checksInclude, this.checksExclude);
+        if (ambigousChecks) {
+            throw new Error("You cannot define both checks_include and checks_exclude inputs, please use only one of them");
+        }
+        // if neither checks_include nor checks_exclude are defined, then we will use all checks
+        if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
+            this.filteredChecks = [...this.allChecks];
+            return;
+        }
+        // if only checks_include is defined, then we will use only the checks that are included
+        if (!this.checksInclude) {
+            let firstPassthrough = (0, checksFilters_1.filterChecksWithMatchingNameAndAppId)(this.allChecks, this.checksInclude);
+            // lets separate the object
+            let filteredChecks = firstPassthrough["filteredChecks"];
+            let missingChecks = firstPassthrough["missingChecks"];
+            this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(filteredChecks);
+            this.missingChecks = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
+        }
+        if (!this.checksExclude) {
+            let firstPassthrough = (0, checksFilters_1.removeChecksWithMatchingNameAndAppId)(this.allChecks, this.checksExclude);
+            this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
+        }
+    }
+    ;
+    async runLogic() {
+        await this.fetchAllChecks();
+        await this.fetchAllStatusCommits();
+        await this.filterChecks();
+    }
+}
+exports["default"] = Checks;
+
+
+/***/ }),
+
+/***/ 2342:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createCheckRun = exports.getJobsForWorkflowRun = exports.getAllStatusCommits = exports.getAllChecks = void 0;
+const octokit_1 = __nccwpck_require__(3409);
+async function getAllChecks(owner, repo, ref) {
+    try {
+        let checks = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/check-runs", {
+            owner,
+            repo,
+            ref,
+        });
+        return checks;
+    }
+    catch (error) {
+        throw new Error("Error getting all checks: " + error.message);
+    }
+}
+exports.getAllChecks = getAllChecks;
+async function getAllStatusCommits(owner, repo, ref) {
+    try {
+        let statuses = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/statuses", {
+            owner,
+            repo,
+            ref,
+        });
+        return statuses;
+    }
+    catch (error) {
+        throw new Error("Error getting all statuses: " + error.message);
+    }
+}
+exports.getAllStatusCommits = getAllStatusCommits;
+async function getJobsForWorkflowRun(owner, repo, run_id) {
+    try {
+        let jobs = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/actions/runs/:run_id/jobs", {
+            owner,
+            repo,
+            run_id,
+        });
+        return jobs;
+    }
+    catch (error) {
+        throw new Error("Error getting all jobs: " + error.message);
+    }
+}
+exports.getJobsForWorkflowRun = getJobsForWorkflowRun;
+async function createCheckRun(owner, repo, head_sha, name, status, conclusion, output) {
+    try {
+        let check = await octokit_1.restClient.checks.create({
+            owner,
+            repo,
+            head_sha,
+            name,
+            status,
+            conclusion,
+            output,
+        });
+        return check;
+    }
+    catch (error) {
+        throw new Error("Error creating check: " + error.message);
+    }
+}
+exports.createCheckRun = createCheckRun;
+
+
+/***/ }),
+
+/***/ 5319:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.filterStatusesByCreatorId = exports.filterStatusesByState = exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.filterStatusesByContext = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
+var FilterTypes;
+(function (FilterTypes) {
+    FilterTypes["exclude"] = "exclude";
+    FilterTypes["include"] = "include";
+})(FilterTypes || (exports.FilterTypes = FilterTypes = {}));
+function returnChecksWithMatchingNameAndAppId(checks, name, appId) {
+    const regex = new RegExp(name);
+    let checksWithNameAndAppID = [];
+    //if appId is -1, then we don't care about the app id, just the name
+    if (appId === -1) {
+        checksWithNameAndAppID = checks.filter((check) => regex.test(check.name));
+    }
+    else {
+        checksWithNameAndAppID = checks.filter((check) => regex.test(check.name) && check.app.id === appId);
+    }
+    //if no check is found, return null
+    if (checksWithNameAndAppID.length === 0) {
+        return null;
+    }
+    // if there is only one check with the name and app id, return it
+    else if (checksWithNameAndAppID.length === 1) {
+        return checksWithNameAndAppID;
+    }
+    //     if there are multiple checks with the same name, use the app id to pick the most recent check on each unique app id
+    const getUniqueAppId = [...new Set(checksWithNameAndAppID.map((check) => check.app.id))];
+    let mostRecentChecks = [];
+    getUniqueAppId.forEach((appId) => {
+        const checksWithMatchingAppId = checksWithNameAndAppID.filter((check) => check.app.id === appId);
+        // we used regular expressions to get here, so we need to make sure that the checks we are comparing are actually the same
+        const getUniqueCheckName = [...new Set(checksWithMatchingAppId.map((check) => check.name))];
+        getUniqueCheckName.forEach((checkName) => {
+            const checksWithMatchingName = checksWithMatchingAppId.filter((check) => check.name === checkName);
+            const mostRecentCheck = checksWithMatchingName.reduce((prev, current) => (prev.id > current.id) ? prev : current);
+            mostRecentChecks.push(mostRecentCheck);
+        });
+    });
+    return mostRecentChecks;
+}
+exports.returnChecksWithMatchingNameAndAppId = returnChecksWithMatchingNameAndAppId;
+function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
+    let missingChecks = [];
+    let filteredChecks = [];
+    checksInputs.forEach(checkInput => {
+        const checksWithNameAndAppId = returnChecksWithMatchingNameAndAppId(checks, checkInput.name, checkInput.app_id);
+        if (checksWithNameAndAppId === null) {
+            missingChecks.push(checkInput);
+        }
+        else {
+            filteredChecks = [...filteredChecks, ...checksWithNameAndAppId];
+        }
+    });
+    return { filteredChecks, missingChecks };
+}
+exports.filterChecksWithMatchingNameAndAppId = filterChecksWithMatchingNameAndAppId;
+function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
+    let newChecks = [...checks];
+    newChecks.forEach(check => {
+        checksInputs.forEach(checkInput => {
+            const regex = new RegExp(checkInput.name);
+            if (checkInput.app_id === -1) {
+                if (regex.test(check.name)) {
+                    newChecks = newChecks.filter((newCheck) => newCheck.id !== check.id);
+                }
+            }
+            else {
+                if (regex.test(check.name) && checkInput.app_id === check.app.id) {
+                    newChecks = newChecks.filter((newCheck) => newCheck.id !== check.id);
+                }
+            }
+        });
+    });
+    return newChecks;
+}
+exports.removeChecksWithMatchingNameAndAppId = removeChecksWithMatchingNameAndAppId;
+function checkOneOfTheChecksInputIsEmpty(checksInputs1, checksInputs2) {
+    if (checksInputs1.length === 0 || checksInputs2.length === 0) {
+        return true;
+    }
+    return false;
+}
+exports.checkOneOfTheChecksInputIsEmpty = checkOneOfTheChecksInputIsEmpty;
+function removeDuplicateEntriesChecksInputsFromSelf(checksInputs) {
+    let uniqueCheckInputs = [];
+    checksInputs.forEach((checkInput) => {
+        const checkInputAlreadyExists = uniqueCheckInputs.some((uniqueCheckInput) => uniqueCheckInput.name === checkInput.name && uniqueCheckInput.app_id === checkInput.app_id);
+        if (!checkInputAlreadyExists) {
+            uniqueCheckInputs.push(checkInput);
+        }
+    });
+    return uniqueCheckInputs;
+}
+exports.removeDuplicateEntriesChecksInputsFromSelf = removeDuplicateEntriesChecksInputsFromSelf;
+function removeDuplicateChecksEntriesFromSelf(checks) {
+    // use the check id to determine uniqueness
+    let uniqueChecks = [];
+    checks.forEach((check) => {
+        const checkAlreadyExists = uniqueChecks.some((uniqueCheck) => uniqueCheck.id === check.id);
+        if (!checkAlreadyExists) {
+            uniqueChecks.push(check);
+        }
+    });
+    return uniqueChecks;
+}
+exports.removeDuplicateChecksEntriesFromSelf = removeDuplicateChecksEntriesFromSelf;
+function filterStatusesByContext(statuses, context, filterType = FilterTypes.include) {
+    const regex = new RegExp(context);
+    if (filterType === FilterTypes.include) {
+        return statuses.filter((status) => regex.test(status.context));
+    }
+    else {
+        return statuses.filter((status) => !regex.test(status.context));
+    }
+}
+exports.filterStatusesByContext = filterStatusesByContext;
+function filterChecksByStatus(checks, status) {
+    return checks.filter((check) => check.status === status);
+}
+exports.filterChecksByStatus = filterChecksByStatus;
+function filterChecksByConclusion(checks, conclusion) {
+    return checks.filter((check) => check.conclusion === conclusion);
+}
+exports.filterChecksByConclusion = filterChecksByConclusion;
+function filterStatusesByState(statuses, state) {
+    return statuses.filter((status) => status.state === state);
+}
+exports.filterStatusesByState = filterStatusesByState;
+function filterStatusesByCreatorId(statuses, creatorId) {
+    return statuses.filter((status) => status.creator.id === creatorId);
+}
+exports.filterStatusesByCreatorId = filterStatusesByCreatorId;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -28934,10 +29359,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
+const checks_1 = __importDefault(__nccwpck_require__(1935));
 const inputsExtractor_1 = __nccwpck_require__(6222);
 /**
  * The main function for the action.
@@ -28948,12 +29377,10 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-        // console.log(JSON.parse(core.getInput("checks_include")));
-        // console.log(JSON.parse(core.getInput("checks_exclude")));
-        console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
-        console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
-        // const allChecks = await getAllChecks(owner, repo, sha);
-        // console.log("All checks: " + JSON.stringify(allChecks));
+        const inputs = inputsExtractor_1.sanitizedInputs;
+        const checks = new checks_1.default({ ...inputs, owner, repo });
+        checks.runLogic();
+        console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
@@ -28997,10 +29424,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.sanitizedInputs = void 0;
+exports.sanitizedInputs = exports.validateCheckInputs = exports.isValidCheckInput = exports.parseChecksArray = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const validators_1 = __nccwpck_require__(1300);
+const checksFilters_1 = __nccwpck_require__(5319);
 function inputsParser() {
     const eventName = github.context.eventName;
     const validPullRequestEvents = ["pull_request", "pull_request_target"];
@@ -29009,14 +29437,15 @@ function inputsParser() {
         headSha = github.context.payload.pull_request?.head.sha;
     }
     const commitSHA = core.getInput("commit_sha") || headSha || github.context.sha;
-    const checksInclude = parseChecksArray(core.getInput("checks_include"), "checks_include");
-    const checksExclude = parseChecksArray(core.getInput("checks_exclude"), "checks_exclude");
+    const checksInclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_include"), "checks_include"));
+    const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
+    const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     const failStep = core.getInput("fail_step") == "true";
     const failFast = core.getInput("fail_fast") == "true";
     return {
@@ -29031,6 +29460,7 @@ function inputsParser() {
         pollingInterval,
         failStep,
         failFast,
+        retries
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
@@ -29039,14 +29469,15 @@ function parseChecksArray(input, inputType = "checks_include") {
         if (trimmedInput === "-1") {
             return [];
         }
-        if (trimmedInput.startsWith("{") && trimmedInput.endsWith("}")) {
+        // attempt to parse as JSON if it starts with { or [
+        if (trimmedInput.startsWith("{")) {
             let parsedInput = JSON.parse("[" + trimmedInput + "]");
             if (!validateCheckInputs(parsedInput)) {
                 throw new Error();
             }
             return parsedInput;
         }
-        if (trimmedInput.startsWith("[") && trimmedInput.endsWith("]")) {
+        if (trimmedInput.startsWith("[")) {
             let parsedInput = JSON.parse(trimmedInput);
             if (!validateCheckInputs(parsedInput)) {
                 throw new Error();
@@ -29063,13 +29494,64 @@ function parseChecksArray(input, inputType = "checks_include") {
         throw new Error(`Error parsing the ${inputType} input, please provide a comma-separated list of check names, or a valid JSON array of objects with the properties "name" and "app_id"`);
     }
 }
+exports.parseChecksArray = parseChecksArray;
 function isValidCheckInput(object) {
     return typeof object.name === 'string' && typeof object.app_id === 'number';
 }
+exports.isValidCheckInput = isValidCheckInput;
 function validateCheckInputs(array) {
     return array.every(isValidCheckInput);
 }
+exports.validateCheckInputs = validateCheckInputs;
 exports.sanitizedInputs = inputsParser();
+
+
+/***/ }),
+
+/***/ 3409:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.restClient = void 0;
+const octokit = __importStar(__nccwpck_require__(5375));
+const core = __importStar(__nccwpck_require__(2186));
+var restClient = new octokit.Octokit({
+    auth: core.getInput("token"),
+    userAgent: "allcheckspassed-action",
+    baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
+    log: {
+        debug: console.debug,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+    },
+});
+exports.restClient = restClient;
 
 
 /***/ }),

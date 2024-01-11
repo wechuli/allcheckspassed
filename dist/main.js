@@ -22,10 +22,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
+const checks_1 = __importDefault(require("./checks/checks"));
 const inputsExtractor_1 = require("./utils/inputsExtractor");
 /**
  * The main function for the action.
@@ -36,12 +40,10 @@ async function run() {
         core.debug("Hello from the action!");
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-        // console.log(JSON.parse(core.getInput("checks_include")));
-        // console.log(JSON.parse(core.getInput("checks_exclude")));
-        console.log(inputsExtractor_1.sanitizedInputs.checksInclude);
-        console.log(inputsExtractor_1.sanitizedInputs.checksExclude);
-        // const allChecks = await getAllChecks(owner, repo, sha);
-        // console.log("All checks: " + JSON.stringify(allChecks));
+        const inputs = inputsExtractor_1.sanitizedInputs;
+        const checks = new checks_1.default({ ...inputs, owner, repo });
+        checks.runLogic();
+        console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
