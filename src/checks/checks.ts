@@ -90,7 +90,7 @@ export default class Checks{
         }
 
         // if only checks_include is defined, then we will use only the checks that are included
-        if(this.checksInclude){
+        if(this.checksInclude.length > 0 && this.checksExclude.length === 0){
             let firstPassthrough = filterChecksWithMatchingNameAndAppId(this.allChecks,this.checksInclude);
             // lets separate the object
 
@@ -102,7 +102,7 @@ export default class Checks{
             return;
         }
 
-        if(this.checksExclude){
+        if(this.checksExclude.length > 0 && this.checksInclude.length === 0){
 let firstPassthrough =removeChecksWithMatchingNameAndAppId(this.allChecks,this.checksExclude);
 this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
 return;
