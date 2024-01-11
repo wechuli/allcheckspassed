@@ -29093,7 +29093,7 @@ class Checks {
             return;
         }
         // if only checks_include is defined, then we will use only the checks that are included
-        if (!this.checksInclude) {
+        if (this.checksInclude) {
             let firstPassthrough = (0, checksFilters_1.filterChecksWithMatchingNameAndAppId)(this.allChecks, this.checksInclude);
             // lets separate the object
             let filteredChecks = firstPassthrough["filteredChecks"];
@@ -29102,7 +29102,7 @@ class Checks {
             this.missingChecks = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
             return;
         }
-        if (!this.checksExclude) {
+        if (this.checksExclude) {
             let firstPassthrough = (0, checksFilters_1.removeChecksWithMatchingNameAndAppId)(this.allChecks, this.checksExclude);
             this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
             return;
