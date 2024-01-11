@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { getAllChecks } from "./checks/checksAPI";
+import Checks from "./checks/checks";
 import {sanitizedInputs} from "./utils/inputsExtractor";
 
 /**
@@ -13,17 +13,13 @@ export async function run(): Promise<void> {
     const owner = github.context.repo.owner;
     const repo = github.context.repo.repo;
 
-    // console.log(JSON.parse(core.getInput("checks_include")));
-    // console.log(JSON.parse(core.getInput("checks_exclude")));
+    const inputs = sanitizedInputs;
 
+    const checks = new Checks({...inputs, owner, repo});
+    checks.runLogic();
 
+    console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
 
-    console.log(sanitizedInputs.checksInclude)
-    console.log(sanitizedInputs.checksExclude)
-
-
-    // const allChecks = await getAllChecks(owner, repo, sha);
-    // console.log("All checks: " + JSON.stringify(allChecks));
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {core.setFailed(error.message)};

@@ -85,11 +85,10 @@ return newChecks;
 
 export function checkOneOfTheChecksInputIsEmpty(checksInputs1:ICheckInput[], checksInputs2:ICheckInput[]):boolean {
 
-if(checksInputs1.length === 0 || checksInputs2.length === 0) {
-    return true;
-}
-throw new Error("You cannot define both checks_include and checks_exclude inputs, please use only one of them");
-
+    if (checksInputs1.length === 0 || checksInputs2.length === 0) {
+        return true;
+    }
+    return false;
 }
 export function removeDuplicateEntriesChecksInputsFromSelf(checksInputs:ICheckInput[]):ICheckInput[] {
     let uniqueCheckInputs:ICheckInput[] = [];

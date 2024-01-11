@@ -144,7 +144,7 @@ describe("checkOneOfTheChecksInputIsEmpty", () => {
             let input1:ICheckInput[] = [{app_id:1,name:"check1"},{app_id:2,name:"check2"}];
             let input2:ICheckInput[] = [{app_id:3,name:"check3"},{app_id:4,name:"check4"}];
 
-            expect(() => checkOneOfTheChecksInputIsEmpty(input1,input2)).toThrowError()
+            expect(checkOneOfTheChecksInputIsEmpty(input1,input2)).toBe(false);
 
         });
 
@@ -177,6 +177,20 @@ describe("removeChecksWithMatchingNameAndAppId", () => {
 
         expect(removeChecksWithMatchingNameAndAppId(checksData,input)).toStrictEqual(expectedOutput);
     });
+
+    it("should remove all checks if all checks match the input", () => {
+        let input:ICheckInput[] = [{app_id:-1,name:"check."}];
+        let expectedOutput:ICheck[] = [];
+
+        expect(removeChecksWithMatchingNameAndAppId(checksData,input)).toStrictEqual(expectedOutput);
+    })
+
+    it("should return checks as is if no checks match the input", () => {
+        let input:ICheckInput[] = [{app_id:1000,name:"check1"}];
+        let expectedOutput:ICheck[] = checksData;
+
+        expect(removeChecksWithMatchingNameAndAppId(checksData,input)).toStrictEqual(expectedOutput);
+    })
 });
 
 describe("removeDuplicateChecksEntriesFromSelf", () => {
