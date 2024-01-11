@@ -62,6 +62,8 @@ export default class Checks{
 
     async fetchAllChecks(){
         try {
+            const allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
+            console.log(`all checks from there: ${JSON.stringify(allChecks)}`);
             this.allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
         } catch (error: any) {
             throw new Error("Error getting all checks: " + error.message);
