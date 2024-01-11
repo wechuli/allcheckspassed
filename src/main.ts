@@ -18,6 +18,8 @@ export async function run(): Promise<void> {
     const checks = new Checks({...inputs, owner, repo});
     checks.runLogic();
 
+    console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
+
     console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
 
   } catch (error) {

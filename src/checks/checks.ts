@@ -17,7 +17,7 @@ interface IRepo{
 
 export default class Checks{
     // data
-    private allChecks: ICheck[] = [];
+    public allChecks: ICheck[] = [];
     private allStatuses: IStatus[] = [];
     public filteredChecks: ICheck[] = [];
     private filteredStatuses: IStatus[] = [];
@@ -85,7 +85,7 @@ export default class Checks{
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
 
         if(this.checksInclude.length === 0 && this.checksExclude.length === 0){
-
+console.log("am here");
             this.filteredChecks = [...this.allChecks];
             return;
         }
@@ -100,11 +100,13 @@ export default class Checks{
 
             this.filteredChecks = removeDuplicateChecksEntriesFromSelf(filteredChecks);
             this.missingChecks = removeDuplicateEntriesChecksInputsFromSelf(missingChecks);
+            return;
         }
 
         if(!this.checksExclude){
 let firstPassthrough =removeChecksWithMatchingNameAndAppId(this.allChecks,this.checksExclude);
 this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
+return;
         }
 
     };
