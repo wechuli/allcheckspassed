@@ -29067,6 +29067,8 @@ class Checks {
     }
     async fetchAllChecks() {
         try {
+            const allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
+            console.log(`all checks from there: ${JSON.stringify(allChecks)}`);
             this.allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
         }
         catch (error) {
