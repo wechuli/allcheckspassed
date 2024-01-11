@@ -44,6 +44,10 @@ inputs:
     description: "The period in minutes between API calls that polls the GitHub Api for completed checks, shorter intervals may result in API rate limiting"
     required: false
     default: "1"
+  retries:
+    description: "The number of times to retry the API call to get the checks, if the API call fails"
+    required: false
+    default: "10"
   fail_step:
     description: "If set to true, the action will fail if the evaluation of the checks fails"
     required: false

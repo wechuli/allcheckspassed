@@ -1,4 +1,4 @@
-import { validateIntervalValues } from '../src/utils/inputsExtractor';
+import { validateIntervalValues } from '../src/utils/validators';
 
 
 

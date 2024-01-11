@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { validateIntervalValues } from "./validators";
 import {ICheckInput} from '../checks/checksInterfaces';
+import {removeDuplicateEntriesChecksInputsFromSelf} from "../checks/checksFilters";
 
 /**
  * Parses the inputs for the action.
@@ -20,6 +21,7 @@ export interface IInputs {
   pollingInterval: number;
   failStep: boolean;
   failFast: boolean;
+  retries: number;
 }
 
  function inputsParser(): IInputs {
@@ -32,8 +34,8 @@ export interface IInputs {
   const commitSHA: string =
     core.getInput("commit_sha") || headSha || github.context.sha;
 
-  const checksInclude: ICheckInput[] = parseChecksArray(core.getInput("checks_include"),"checks_include");
-  const checksExclude: ICheckInput[] = parseChecksArray(core.getInput("checks_exclude"),"checks_exclude") ;
+  const checksInclude: ICheckInput[] =removeDuplicateEntriesChecksInputsFromSelf(parseChecksArray(core.getInput("checks_include"),"checks_include"));
+  const checksExclude: ICheckInput[] =removeDuplicateEntriesChecksInputsFromSelf(parseChecksArray(core.getInput("checks_exclude"),"checks_exclude"));
   const treatSkippedAsPassed: boolean =
     core.getInput("treat_skipped_as_passed") == "true";
   const createCheck: boolean = core.getInput("create_check") == "true";
@@ -46,7 +48,7 @@ export interface IInputs {
   const pollingInterval: number = validateIntervalValues(
     parseInt(core.getInput("polling_interval"))
   );
-
+  const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
   const failStep: boolean = core.getInput("fail_step") == "true";
   const failFast: boolean = core.getInput("fail_fast") == "true";
 
@@ -62,10 +64,11 @@ export interface IInputs {
     pollingInterval,
     failStep,
     failFast,
+      retries
   };
 }
 
-function parseChecksArray(input: string, inputType:string = "checks_include"): ICheckInput[]{
+export function parseChecksArray(input: string, inputType:string = "checks_include"): ICheckInput[]{
 
     try{
 
@@ -75,7 +78,9 @@ function parseChecksArray(input: string, inputType:string = "checks_include"): I
             return [];
         }
 
-       if (trimmedInput.startsWith("{") && trimmedInput.endsWith("}")) {
+        // attempt to parse as JSON if it starts with { or [
+
+       if (trimmedInput.startsWith("{")) {
 
             let parsedInput = JSON.parse("[" + trimmedInput + "]");
             if (!validateCheckInputs(parsedInput)) {
@@ -83,7 +88,7 @@ function parseChecksArray(input: string, inputType:string = "checks_include"): I
             }
             return parsedInput;
        }
-       if (trimmedInput.startsWith("[") && trimmedInput.endsWith("]")) {
+       if (trimmedInput.startsWith("[")) {
            let parsedInput = JSON.parse(trimmedInput);
               if (!validateCheckInputs(parsedInput)) {
                 throw new Error();
@@ -104,11 +109,11 @@ function parseChecksArray(input: string, inputType:string = "checks_include"): I
 
 }
 
-function isValidCheckInput(object: any): object is ICheckInput {
+export function isValidCheckInput(object: any): object is ICheckInput {
     return typeof object.name === 'string' && typeof object.app_id === 'number';
 }
 
-function validateCheckInputs(array: any[]): array is ICheckInput[] {
+export function validateCheckInputs(array: any[]): array is ICheckInput[] {
     return array.every(isValidCheckInput);
 }
 

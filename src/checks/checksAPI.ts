@@ -38,6 +38,26 @@ export async function getAllStatusCommits(
     }
 }
 
+export async function getJobsForWorkflowRun(
+    owner: string,
+    repo: string,
+    run_id: number
+) {
+    try {
+        let jobs = await restClient.paginate(
+            "GET /repos/:owner/:repo/actions/runs/:run_id/jobs",
+            {
+                owner,
+                repo,
+                run_id,
+            }
+        );
+        return jobs;
+    } catch (error: any) {
+        throw new Error("Error getting all jobs: " + error.message);
+    }
+}
+
 export async function createCheckRun(
   owner: string,
   repo: string,

@@ -1,9 +1,13 @@
 export interface  ICheck{
+    id: number;
     name: string;
     status: string;
-    conclusion: string;
+    conclusion: string | null;
     started_at: string;
-    completed_at: string;
+    completed_at: string | null;
+    check_suite:{
+        id: number;
+    }
     app:{
         id: number;
         slug: string;

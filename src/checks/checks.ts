@@ -2,19 +2,22 @@
 import { IInputs} from '../utils/inputsExtractor';
 import { restClient } from '../utils/octokit';
 import {getAllChecks,getAllStatusCommits,createCheckRun} from './checksAPI';
-import { ICheckInput } from './checksInterfaces';
+import { ICheckInput,ICheck,IStatus } from './checksInterfaces';
 
 interface IRepo{
     owner: string;
     repo: string;
 }
 
-class Checks{
+export class Checks{
     // data
-    private allChecks: any;
-    private allStatuses: any;
+    private allChecks: ICheck[] = [];
+    private allStatuses: IStatus[] = [];
+    private filteredChecks: ICheck[] = [];
+    private filteredStatuses: IStatus[] = [];
     private allChecksPassed: boolean = false;
     private allStatusesPassed: boolean = false;
+    private missingChecks: ICheckInput[] = [];
 
     // inputs
     private owner: string;
@@ -27,8 +30,11 @@ class Checks{
     private includeCommitStatuses: boolean;
     private poll: boolean;
     private delay: number;
+    private retries: number;
     private pollingInterval: number;
     private failStep: boolean;
+    private failFast: boolean;
+
 
     constructor(props: IRepo & IInputs){
         this.owner = props.owner;
@@ -43,12 +49,14 @@ class Checks{
         this.delay = props.delay;
         this.pollingInterval = props.pollingInterval;
         this.failStep = props.failStep;
+        this.failFast = props.failFast;
+        this.retries = props.retries;
 
     }
 
     async fetchAllChecks(){
         try {
-            this.allChecks = await getAllChecks(this.owner, this.repo, this.ref);
+            this.allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
         } catch (error: any) {
             throw new Error("Error getting all checks: " + error.message);
         }
@@ -56,7 +64,7 @@ class Checks{
 
     async fetchAllStatusCommits(){
         try {
-            this.allStatuses = await getAllStatusCommits(this.owner, this.repo, this.ref);
+            this.allStatuses = await getAllStatusCommits(this.owner, this.repo, this.ref) as IStatus[];
         } catch (error: any) {
             throw new Error("Error getting all statuses: " + error.message);
         }
