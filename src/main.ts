@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import Checks from "./checks/checks";
 import {sanitizedInputs} from "./utils/inputsExtractor";
+import { extractOwnCheckNameFromWorkflow} from "./utils/fileExtractor";
 
 /**
  * The main function for the action.
@@ -17,6 +18,8 @@ export async function run(): Promise<void> {
 
     const checks = new Checks({...inputs, owner, repo});
     await checks.runLogic();
+
+    console.log(await extractOwnCheckNameFromWorkflow());
 
     console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
 

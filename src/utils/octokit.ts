@@ -1,7 +1,7 @@
 import * as octokit from "@octokit/rest";
 import * as core from "@actions/core";
 
-var restClient = new octokit.Octokit({
+export const restClient = new octokit.Octokit({
   auth: core.getInput("token"),
   userAgent: "allcheckspassed-action",
   baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
@@ -13,4 +13,4 @@ var restClient = new octokit.Octokit({
   },
 });
 
-export { restClient };
+

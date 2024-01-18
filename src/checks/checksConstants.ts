@@ -24,3 +24,4 @@ export enum commitStatusState{
     SUCCESS = "success"
 }
 
+export const GitHubActionsBotId = 15;

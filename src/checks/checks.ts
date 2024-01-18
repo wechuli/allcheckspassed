@@ -1,4 +1,5 @@
 
+import * as core from '@actions/core';
 import { IInputs} from '../utils/inputsExtractor';
 import {getAllChecks,getAllStatusCommits} from './checksAPI';
 import { ICheckInput,ICheck,IStatus } from './checksInterfaces';
@@ -9,6 +10,7 @@ import {
     removeDuplicateChecksEntriesFromSelf,
     removeDuplicateEntriesChecksInputsFromSelf
 } from './checksFilters';
+import {sleep} from "../utils/timeFuncs";
 
 interface IRepo{
     owner: string;
@@ -110,7 +112,15 @@ return;
 
     };
 
+    reportChecks(){
+        // create table showing the filtered checks, with names and conclusion, created at, updated at, and app id and status
+        core.info("Filtered checks:");
+        core.info("Name | Conclusion | Created at | Updated at |  | Status");
+
+    };
+
     async runLogic(){
+        sleep(this.delay);
         await this.fetchAllChecks();
         await this.fetchAllStatusCommits();
         await this.filterChecks();
