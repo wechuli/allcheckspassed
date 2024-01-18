@@ -17,7 +17,10 @@ interface JobConfig {
     jobs: IJobs;
 }
 
-function extractFilePath(input: string=github.context.workflow_ref): string {
+function extractFilePath(input: string | undefined = process.env.GITHUB_WORKFLOW_REF): string {
+if (input === undefined) {
+    throw new Error("Error getting file path");
+}
 let splitAt = input.split("@");
 let splitOnSlash = splitAt[0].split("/");
 // take last element
@@ -28,12 +31,15 @@ return ".github/workflows/" + lastElement;
 
 async function getFile(owner: string, repo: string, path: string, ref: string): Promise<JobConfig> {
     try {
-        let file = await restClient.repos.getContent({
+        let file: any = await restClient.repos.getContent({
             owner,
             repo,
             path,
             ref
         });
+
+
+
         // parse the yaml file to json
         let fileContent = Buffer.from(file.data.content, 'base64').toString();
         return yaml.parse(fileContent);
