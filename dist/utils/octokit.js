@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.restClient = void 0;
 const octokit = __importStar(require("@octokit/rest"));
 const core = __importStar(require("@actions/core"));
-var restClient = new octokit.Octokit({
+exports.restClient = new octokit.Octokit({
     auth: core.getInput("token"),
     userAgent: "allcheckspassed-action",
     baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
@@ -37,5 +37,4 @@ var restClient = new octokit.Octokit({
         error: console.error,
     },
 });
-exports.restClient = restClient;
 //# sourceMappingURL=octokit.js.map
