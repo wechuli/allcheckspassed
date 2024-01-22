@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
+exports.GitHubActionsBotId = exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
 var checkConclusion;
 (function (checkConclusion) {
     checkConclusion["ACTION_REQUIRED"] = "action_required";
@@ -25,4 +25,5 @@ var commitStatusState;
     commitStatusState["PENDING"] = "pending";
     commitStatusState["SUCCESS"] = "success";
 })(commitStatusState || (exports.commitStatusState = commitStatusState = {}));
+exports.GitHubActionsBotId = 15;
 //# sourceMappingURL=checksConstants.js.map

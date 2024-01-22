@@ -31,6 +31,7 @@ const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 const checks_1 = __importDefault(require("./checks/checks"));
 const inputsExtractor_1 = require("./utils/inputsExtractor");
+const fileExtractor_1 = require("./utils/fileExtractor");
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -43,6 +44,7 @@ async function run() {
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
         await checks.runLogic();
+        console.log(await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)());
         console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
         console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
     }
