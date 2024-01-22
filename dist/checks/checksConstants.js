@@ -25,5 +25,5 @@ var commitStatusState;
     commitStatusState["PENDING"] = "pending";
     commitStatusState["SUCCESS"] = "success";
 })(commitStatusState || (exports.commitStatusState = commitStatusState = {}));
-exports.GitHubActionsBotId = 15;
+exports.GitHubActionsBotId = 15368;
 //# sourceMappingURL=checksConstants.js.map

@@ -27,6 +27,8 @@ const core = __importStar(require("@actions/core"));
 const checksAPI_1 = require("./checksAPI");
 const checksFilters_1 = require("./checksFilters");
 const timeFuncs_1 = require("../utils/timeFuncs");
+const fileExtractor_1 = require("../utils/fileExtractor");
+const checksConstants_1 = require("./checksConstants");
 class Checks {
     // data
     allChecks = [];
@@ -36,6 +38,7 @@ class Checks {
     allChecksPassed = false;
     allStatusesPassed = false;
     missingChecks = [];
+    ownCheck; //the check from the workflow run itself
     // inputs
     owner;
     repo;
@@ -109,6 +112,10 @@ class Checks {
             this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
             return;
         }
+        let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
+        let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
+        this.ownCheck = this.filteredChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        this.filteredChecks = this.filteredChecks.filter(check => check.name !== ownCheckName && check.app.id !== gitHubActionsBotId);
     }
     ;
     reportChecks() {
@@ -120,7 +127,6 @@ class Checks {
     async runLogic() {
         (0, timeFuncs_1.sleep)(this.delay);
         await this.fetchAllChecks();
-        await this.fetchAllStatusCommits();
         await this.filterChecks();
     }
 }

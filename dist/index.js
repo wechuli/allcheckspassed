@@ -29050,6 +29050,8 @@ const core = __importStar(__nccwpck_require__(2186));
 const checksAPI_1 = __nccwpck_require__(2342);
 const checksFilters_1 = __nccwpck_require__(5319);
 const timeFuncs_1 = __nccwpck_require__(8399);
+const fileExtractor_1 = __nccwpck_require__(1378);
+const checksConstants_1 = __nccwpck_require__(77);
 class Checks {
     // data
     allChecks = [];
@@ -29059,6 +29061,7 @@ class Checks {
     allChecksPassed = false;
     allStatusesPassed = false;
     missingChecks = [];
+    ownCheck; //the check from the workflow run itself
     // inputs
     owner;
     repo;
@@ -29132,6 +29135,10 @@ class Checks {
             this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
             return;
         }
+        let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
+        let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
+        this.ownCheck = this.filteredChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        this.filteredChecks = this.filteredChecks.filter(check => check.name !== ownCheckName && check.app.id !== gitHubActionsBotId);
     }
     ;
     reportChecks() {
@@ -29143,7 +29150,6 @@ class Checks {
     async runLogic() {
         (0, timeFuncs_1.sleep)(this.delay);
         await this.fetchAllChecks();
-        await this.fetchAllStatusCommits();
         await this.filterChecks();
     }
 }
@@ -29220,6 +29226,42 @@ async function createCheckRun(owner, repo, head_sha, name, status, conclusion, o
     }
 }
 exports.createCheckRun = createCheckRun;
+
+
+/***/ }),
+
+/***/ 77:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GitHubActionsBotId = exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
+var checkConclusion;
+(function (checkConclusion) {
+    checkConclusion["ACTION_REQUIRED"] = "action_required";
+    checkConclusion["CANCELLED"] = "cancelled";
+    checkConclusion["FAILURE"] = "failure";
+    checkConclusion["NEUTRAL"] = "neutral";
+    checkConclusion["SUCCESS"] = "success";
+    checkConclusion["SKIPPED"] = "skipped";
+    checkConclusion["STALE"] = "stale";
+    checkConclusion["TIMED_OUT"] = "timed_out";
+})(checkConclusion || (exports.checkConclusion = checkConclusion = {}));
+var checkStatus;
+(function (checkStatus) {
+    checkStatus["QUEUED"] = "queued";
+    checkStatus["IN_PROGRESS"] = "in_progress";
+    checkStatus["COMPLETED"] = "completed";
+})(checkStatus || (exports.checkStatus = checkStatus = {}));
+var commitStatusState;
+(function (commitStatusState) {
+    commitStatusState["ERROR"] = "error";
+    commitStatusState["FAILURE"] = "failure";
+    commitStatusState["PENDING"] = "pending";
+    commitStatusState["SUCCESS"] = "success";
+})(commitStatusState || (exports.commitStatusState = commitStatusState = {}));
+exports.GitHubActionsBotId = 15368;
 
 
 /***/ }),
