@@ -47,6 +47,7 @@ async function run() {
         console.log(await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)());
         console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
         console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
+        console.log(`own check: ${JSON.stringify(checks.ownCheck)}`);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
