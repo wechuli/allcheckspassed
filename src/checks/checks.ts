@@ -90,7 +90,7 @@ export default class Checks {
 
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
             this.filteredChecks = [...this.allChecks];
-            return;
+            //return;
         }
 
         // if only checks_include is defined, then we will use only the checks that are included
@@ -103,13 +103,13 @@ export default class Checks {
 
             this.filteredChecks = removeDuplicateChecksEntriesFromSelf(filteredChecks);
             this.missingChecks = removeDuplicateEntriesChecksInputsFromSelf(missingChecks);
-            return;
+            //return;
         }
 
         if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
             let firstPassthrough = removeChecksWithMatchingNameAndAppId(this.allChecks, this.checksExclude);
             this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
-            return;
+            //return;
         }
 
         let ownCheckName = await extractOwnCheckNameFromWorkflow();
