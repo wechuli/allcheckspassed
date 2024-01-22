@@ -1,7 +1,6 @@
 import {restClient} from "../utils/octokit";
 
 
-
 export async function getAllChecks(owner: string, repo: string, ref: string) {
     try {
         let checks = await restClient.paginate(
@@ -59,26 +58,26 @@ export async function getJobsForWorkflowRun(
 }
 
 export async function createCheckRun(
-  owner: string,
-  repo: string,
-  head_sha: string,
-  name: string,
-  status: any,
-  conclusion: any,
-  output: any
+    owner: string,
+    repo: string,
+    head_sha: string,
+    name: string,
+    status: any,
+    conclusion: any,
+    output: any
 ) {
-  try {
-    let check = await restClient.checks.create({
-      owner,
-      repo,
-      head_sha,
-      name,
-      status,
-      conclusion,
-      output,
-    });
-    return check;
-  } catch (error: any) {
-    throw new Error("Error creating check: " + error.message);
-  }
+    try {
+        let check = await restClient.checks.create({
+            owner,
+            repo,
+            head_sha,
+            name,
+            status,
+            conclusion,
+            output,
+        });
+        return check;
+    } catch (error: any) {
+        throw new Error("Error creating check: " + error.message);
+    }
 }

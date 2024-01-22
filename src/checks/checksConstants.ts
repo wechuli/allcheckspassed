@@ -1,5 +1,4 @@
-
-export enum checkConclusion{
+export enum checkConclusion {
     ACTION_REQUIRED = "action_required",
     CANCELLED = "cancelled",
     FAILURE = "failure",
@@ -10,18 +9,18 @@ export enum checkConclusion{
     TIMED_OUT = "timed_out"
 }
 
-export enum checkStatus{
+export enum checkStatus {
     QUEUED = "queued",
     IN_PROGRESS = "in_progress",
     COMPLETED = "completed"
 }
 
 
-export enum commitStatusState{
+export enum commitStatusState {
     ERROR = "error",
     FAILURE = "failure",
     PENDING = "pending",
     SUCCESS = "success"
 }
 
-export const GitHubActionsBotId = 15;
+export const GitHubActionsBotId = 15368;

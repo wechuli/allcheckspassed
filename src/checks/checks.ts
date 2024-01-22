@@ -1,8 +1,7 @@
-
 import * as core from '@actions/core';
-import { IInputs} from '../utils/inputsExtractor';
-import {getAllChecks,getAllStatusCommits} from './checksAPI';
-import { ICheckInput,ICheck,IStatus } from './checksInterfaces';
+import {IInputs} from '../utils/inputsExtractor';
+import {getAllChecks, getAllStatusCommits} from './checksAPI';
+import {ICheckInput, ICheck, IStatus} from './checksInterfaces';
 import {
     checkOneOfTheChecksInputIsEmpty,
     filterChecksWithMatchingNameAndAppId,
@@ -11,13 +10,15 @@ import {
     removeDuplicateEntriesChecksInputsFromSelf
 } from './checksFilters';
 import {sleep} from "../utils/timeFuncs";
+import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
+import {GitHubActionsBotId} from "./checksConstants";
 
-interface IRepo{
+interface IRepo {
     owner: string;
     repo: string;
 }
 
-export default class Checks{
+export default class Checks {
     // data
     public allChecks: ICheck[] = [];
     private allStatuses: IStatus[] = [];
@@ -26,6 +27,7 @@ export default class Checks{
     private allChecksPassed: boolean = false;
     private allStatusesPassed: boolean = false;
     private missingChecks: ICheckInput[] = [];
+    private ownCheck: ICheck | undefined; //the check from the workflow run itself
 
     // inputs
     private owner: string;
@@ -44,7 +46,7 @@ export default class Checks{
     private failFast: boolean;
 
 
-    constructor(props: IRepo & IInputs){
+    constructor(props: IRepo & IInputs) {
         this.owner = props.owner;
         this.repo = props.repo;
         this.ref = props.commitSHA;
@@ -62,7 +64,7 @@ export default class Checks{
 
     }
 
-    async fetchAllChecks(){
+    async fetchAllChecks() {
         try {
             this.allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
         } catch (error: any) {
@@ -70,7 +72,7 @@ export default class Checks{
         }
     }
 
-    async fetchAllStatusCommits(){
+    async fetchAllStatusCommits() {
         try {
             this.allStatuses = await getAllStatusCommits(this.owner, this.repo, this.ref) as IStatus[];
         } catch (error: any) {
@@ -78,22 +80,22 @@ export default class Checks{
         }
     }
 
-    async filterChecks(){
+    async filterChecks() {
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
-        let ambigousChecks = checkOneOfTheChecksInputIsEmpty(this.checksInclude,this.checksExclude);
-        if(!ambigousChecks){
+        let ambigousChecks = checkOneOfTheChecksInputIsEmpty(this.checksInclude, this.checksExclude);
+        if (!ambigousChecks) {
             throw new Error("You cannot define both checks_include and checks_exclude inputs, please use only one of them");
         }
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
 
-        if(this.checksInclude.length === 0 && this.checksExclude.length === 0){
+        if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
             this.filteredChecks = [...this.allChecks];
             return;
         }
 
         // if only checks_include is defined, then we will use only the checks that are included
-        if(this.checksInclude.length > 0 && this.checksExclude.length === 0){
-            let firstPassthrough = filterChecksWithMatchingNameAndAppId(this.allChecks,this.checksInclude);
+        if (this.checksInclude.length > 0 && this.checksExclude.length === 0) {
+            let firstPassthrough = filterChecksWithMatchingNameAndAppId(this.allChecks, this.checksInclude);
             // lets separate the object
 
             let filteredChecks = firstPassthrough["filteredChecks"];
@@ -104,28 +106,31 @@ export default class Checks{
             return;
         }
 
-        if(this.checksExclude.length > 0 && this.checksInclude.length === 0){
-let firstPassthrough =removeChecksWithMatchingNameAndAppId(this.allChecks,this.checksExclude);
-this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
-return;
+        if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
+            let firstPassthrough = removeChecksWithMatchingNameAndAppId(this.allChecks, this.checksExclude);
+            this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
+            return;
         }
 
+        let ownCheckName = await extractOwnCheckNameFromWorkflow();
+        let gitHubActionsBotId = GitHubActionsBotId;
+
+        this.ownCheck = this.filteredChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        this.filteredChecks = this.filteredChecks.filter(check => check.name !== ownCheckName && check.app.id !== gitHubActionsBotId);
     };
 
-    reportChecks(){
+    reportChecks() {
         // create table showing the filtered checks, with names and conclusion, created at, updated at, and app id and status
         core.info("Filtered checks:");
         core.info("Name | Conclusion | Created at | Updated at |  | Status");
 
     };
 
-    async runLogic(){
+    async runLogic() {
         sleep(this.delay);
         await this.fetchAllChecks();
-        await this.fetchAllStatusCommits();
         await this.filterChecks();
     }
-
 
 
 }

@@ -37,9 +37,6 @@ async function getFile(owner: string, repo: string, path: string, ref: string): 
             path,
             ref
         });
-
-
-
         // parse the yaml file to json
         let fileContent = Buffer.from(file.data.content, 'base64').toString();
         return yaml.parse(fileContent);
