@@ -27,7 +27,7 @@ export default class Checks {
     private allChecksPassed: boolean = false;
     private allStatusesPassed: boolean = false;
     private missingChecks: ICheckInput[] = [];
-    private ownCheck: ICheck | undefined; //the check from the workflow run itself
+    public ownCheck: ICheck | undefined; //the check from the workflow run itself
 
     // inputs
     private owner: string;
@@ -81,6 +81,14 @@ export default class Checks {
     }
 
     async filterChecks() {
+
+        // lets get the check from the workflow run itself
+        let ownCheckName = await extractOwnCheckNameFromWorkflow();
+        let gitHubActionsBotId = GitHubActionsBotId;
+
+        this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+
+
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
         let ambigousChecks = checkOneOfTheChecksInputIsEmpty(this.checksInclude, this.checksExclude);
         if (!ambigousChecks) {
@@ -90,7 +98,7 @@ export default class Checks {
 
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
             this.filteredChecks = [...this.allChecks];
-            //return;
+            return;
         }
 
         // if only checks_include is defined, then we will use only the checks that are included
@@ -103,20 +111,16 @@ export default class Checks {
 
             this.filteredChecks = removeDuplicateChecksEntriesFromSelf(filteredChecks);
             this.missingChecks = removeDuplicateEntriesChecksInputsFromSelf(missingChecks);
-            //return;
+            return;
         }
 
         if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
             let firstPassthrough = removeChecksWithMatchingNameAndAppId(this.allChecks, this.checksExclude);
             this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
-            //return;
+            return;
         }
 
-        let ownCheckName = await extractOwnCheckNameFromWorkflow();
-        let gitHubActionsBotId = GitHubActionsBotId;
 
-        this.ownCheck = this.filteredChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
-        this.filteredChecks = this.filteredChecks.filter(check => check.name !== ownCheckName && check.app.id !== gitHubActionsBotId);
     };
 
     reportChecks() {
