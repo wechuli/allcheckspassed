@@ -122,7 +122,7 @@ export function filterStatusesByContext(statuses: IStatus[], context: string, fi
     }
 }
 
-export function filterChecksByStatus(checks: ICheck[], status: checkStatus) {
+export function filterChecksByStatus(checks: ICheck[], status: string) {
     return checks.filter((check) => check.status === status);
 }
 
