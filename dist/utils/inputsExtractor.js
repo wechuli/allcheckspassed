@@ -39,6 +39,7 @@ function inputsParser() {
     const checksInclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_include"), "checks_include"));
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
+    const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
@@ -52,6 +53,7 @@ function inputsParser() {
         checksInclude,
         checksExclude,
         treatSkippedAsPassed,
+        treatNeutralAsPassed,
         createCheck,
         includeCommitStatuses,
         poll,

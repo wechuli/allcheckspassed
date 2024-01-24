@@ -29018,38 +29018,13 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 1935:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const checksAPI_1 = __nccwpck_require__(2342);
 const checksFilters_1 = __nccwpck_require__(5319);
-const timeFuncs_1 = __nccwpck_require__(8399);
 const fileExtractor_1 = __nccwpck_require__(1378);
 const checksConstants_1 = __nccwpck_require__(77);
 class Checks {
@@ -29069,6 +29044,7 @@ class Checks {
     checksExclude;
     checksInclude;
     treatSkippedAsPassed;
+    treatNeutralAsPassed;
     createCheck;
     includeCommitStatuses;
     poll;
@@ -29084,6 +29060,7 @@ class Checks {
         this.checksExclude = props.checksExclude;
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
+        this.treatNeutralAsPassed = props.treatNeutralAsPassed;
         this.createCheck = props.createCheck;
         this.includeCommitStatuses = props.includeCommitStatuses;
         this.poll = props.poll;
@@ -29110,10 +29087,12 @@ class Checks {
         }
     }
     async filterChecks() {
-        // lets get the check from the workflow run itself
-        let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
-        let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
-        this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        // lets get the check from the workflow run itself, if the value already exists, don't re-fetch it
+        if (!this.ownCheck) {
+            let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
+            let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
+            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        }
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
         let ambigousChecks = (0, checksFilters_1.checkOneOfTheChecksInputIsEmpty)(this.checksInclude, this.checksExclude);
         if (!ambigousChecks) {
@@ -29141,16 +29120,41 @@ class Checks {
         }
     }
     ;
-    reportChecks() {
-        // create table showing the filtered checks, with names and conclusion, created at, updated at, and app id and status
-        core.info("Filtered checks:");
-        core.info("Name | Conclusion | Created at | Updated at |  | Status");
+    determineChecksFailure(checks) {
+        // if any of the checks are still in_progress or queued or waiting, then we will return false
+        let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
+        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
+        if (anyInProgressQueuedWaiting.length > 0) {
+            return false;
+        }
+        // conclusions that determine a fail
+        let failureConclusions = [checksConstants_1.checkConclusion.FAILURE, checksConstants_1.checkConclusion.TIMED_OUT, checksConstants_1.checkConclusion.CANCELLED, checksConstants_1.checkConclusion.ACTION_REQUIRED, checksConstants_1.checkConclusion.STALE];
+        // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
+        if (!this.treatSkippedAsPassed) {
+            failureConclusions.push(checksConstants_1.checkConclusion.SKIPPED);
+        }
+        // if the user wanted us to treat neutral as a failure, then we will add it to the failureConclusions array
+        if (!this.treatNeutralAsPassed) {
+            failureConclusions.push(checksConstants_1.checkConclusion.NEUTRAL);
+        }
+        // if any of the checks are failing, then we will return true
+        let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion));
+        if (failingChecks.length > 0) {
+            return false;
+        }
+        return true;
     }
     ;
     async runLogic() {
-        (0, timeFuncs_1.sleep)(this.delay);
         await this.fetchAllChecks();
         await this.filterChecks();
+        // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
+        let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
+        let allChecksPass = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
+        this.allChecksPassed = allChecksPass;
+        return {
+            allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
+        };
     }
 }
 exports["default"] = Checks;
@@ -29237,30 +29241,28 @@ exports.createCheckRun = createCheckRun;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GitHubActionsBotId = exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
-var checkConclusion;
-(function (checkConclusion) {
-    checkConclusion["ACTION_REQUIRED"] = "action_required";
-    checkConclusion["CANCELLED"] = "cancelled";
-    checkConclusion["FAILURE"] = "failure";
-    checkConclusion["NEUTRAL"] = "neutral";
-    checkConclusion["SUCCESS"] = "success";
-    checkConclusion["SKIPPED"] = "skipped";
-    checkConclusion["STALE"] = "stale";
-    checkConclusion["TIMED_OUT"] = "timed_out";
-})(checkConclusion || (exports.checkConclusion = checkConclusion = {}));
-var checkStatus;
-(function (checkStatus) {
-    checkStatus["QUEUED"] = "queued";
-    checkStatus["IN_PROGRESS"] = "in_progress";
-    checkStatus["COMPLETED"] = "completed";
-})(checkStatus || (exports.checkStatus = checkStatus = {}));
-var commitStatusState;
-(function (commitStatusState) {
-    commitStatusState["ERROR"] = "error";
-    commitStatusState["FAILURE"] = "failure";
-    commitStatusState["PENDING"] = "pending";
-    commitStatusState["SUCCESS"] = "success";
-})(commitStatusState || (exports.commitStatusState = commitStatusState = {}));
+exports.checkConclusion = {
+    ACTION_REQUIRED: "action_required",
+    CANCELLED: "cancelled",
+    FAILURE: "failure",
+    NEUTRAL: "neutral",
+    SUCCESS: "success",
+    SKIPPED: "skipped",
+    STALE: "stale",
+    TIMED_OUT: "timed_out"
+};
+exports.checkStatus = {
+    QUEUED: "queued",
+    IN_PROGRESS: "in_progress",
+    COMPLETED: "completed",
+    WAITING: "waiting"
+};
+exports.commitStatusState = {
+    ERROR: "error",
+    FAILURE: "failure",
+    PENDING: "pending",
+    SUCCESS: "success"
+};
 exports.GitHubActionsBotId = 15368;
 
 
@@ -29444,23 +29446,21 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const checks_1 = __importDefault(__nccwpck_require__(1935));
 const inputsExtractor_1 = __nccwpck_require__(6222);
-const fileExtractor_1 = __nccwpck_require__(1378);
+const timeFuncs_1 = __nccwpck_require__(8399);
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        core.debug("Hello from the action!");
+        // delay execution
+        (0, timeFuncs_1.sleep)(inputsExtractor_1.sanitizedInputs.delay * 1000);
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
-        await checks.runLogic();
-        console.log(await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)());
-        console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
-        console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
-        console.log(`own check: ${JSON.stringify(checks.ownCheck)}`);
+        const results = await checks.runLogic();
+        console.log(JSON.stringify(results, null, 2));
     }
     catch (error) {
         // Fail the workflow run if an error occurs
@@ -29600,6 +29600,7 @@ function inputsParser() {
     const checksInclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_include"), "checks_include"));
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
+    const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
     const createCheck = core.getInput("create_check") == "true";
     const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
@@ -29613,6 +29614,7 @@ function inputsParser() {
         checksInclude,
         checksExclude,
         treatSkippedAsPassed,
+        treatNeutralAsPassed,
         createCheck,
         includeCommitStatuses,
         poll,
