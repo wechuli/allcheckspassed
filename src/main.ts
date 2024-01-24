@@ -3,6 +3,7 @@ import * as github from "@actions/github";
 import Checks from "./checks/checks";
 import {sanitizedInputs} from "./utils/inputsExtractor";
 import {extractOwnCheckNameFromWorkflow} from "./utils/fileExtractor";
+import {sleep} from "./utils/timeFuncs";
 
 /**
  * The main function for the action.
@@ -10,21 +11,16 @@ import {extractOwnCheckNameFromWorkflow} from "./utils/fileExtractor";
  */
 export async function run(): Promise<void> {
     try {
-        core.debug("Hello from the action!");
+        // delay execution
+        sleep(sanitizedInputs.delay * 1000);
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
 
         const inputs = sanitizedInputs;
 
         const checks = new Checks({...inputs, owner, repo});
-        await checks.runLogic();
-
-        console.log(await extractOwnCheckNameFromWorkflow());
-
-        console.log(`checks: ${JSON.stringify(checks.allChecks)}`);
-
-        console.log(`filtered checks: ${JSON.stringify(checks.filteredChecks)}`);
-        console.log(`own check: ${JSON.stringify(checks.ownCheck)}`);
+        const results = await checks.runLogic();
+        console.log(JSON.stringify(results, null, 2));
 
     } catch (error) {
         // Fail the workflow run if an error occurs

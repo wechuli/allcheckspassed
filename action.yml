@@ -24,6 +24,10 @@ inputs:
     description: "If set to true, skipped checks will be treated as passed"
     required: false
     default: "true"
+  treat_neutral_as_passed:
+    description: "If set to true, neutral checks will be treated as passed"
+    required: false
+    default: "true"
   create_check:
     description: "If set to true, the action will create it's own check on the commit, rather than the default created by GitHub Action. Must be a GitHub App token"
     required: false

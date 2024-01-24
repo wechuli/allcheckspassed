@@ -3,7 +3,7 @@ import {IInputs} from '../utils/inputsExtractor';
 import {getAllChecks, getAllStatusCommits} from './checksAPI';
 import {ICheckInput, ICheck, IStatus} from './checksInterfaces';
 import {
-    checkOneOfTheChecksInputIsEmpty,
+    checkOneOfTheChecksInputIsEmpty, filterChecksByConclusion, filterChecksByStatus,
     filterChecksWithMatchingNameAndAppId,
     removeChecksWithMatchingNameAndAppId,
     removeDuplicateChecksEntriesFromSelf,
@@ -11,7 +11,7 @@ import {
 } from './checksFilters';
 import {sleep} from "../utils/timeFuncs";
 import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
-import {GitHubActionsBotId} from "./checksConstants";
+import {checkConclusion, checkStatus, GitHubActionsBotId} from "./checksConstants";
 
 interface IRepo {
     owner: string;
@@ -36,6 +36,7 @@ export default class Checks {
     private checksExclude: ICheckInput[];
     private checksInclude: ICheckInput[];
     private treatSkippedAsPassed: boolean;
+    private treatNeutralAsPassed: boolean;
     private createCheck: boolean;
     private includeCommitStatuses: boolean;
     private poll: boolean;
@@ -53,6 +54,7 @@ export default class Checks {
         this.checksExclude = props.checksExclude;
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
+        this.treatNeutralAsPassed = props.treatNeutralAsPassed;
         this.createCheck = props.createCheck;
         this.includeCommitStatuses = props.includeCommitStatuses;
         this.poll = props.poll;
@@ -82,11 +84,14 @@ export default class Checks {
 
     async filterChecks() {
 
-        // lets get the check from the workflow run itself
-        let ownCheckName = await extractOwnCheckNameFromWorkflow();
-        let gitHubActionsBotId = GitHubActionsBotId;
+        // lets get the check from the workflow run itself, if the value already exists, don't re-fetch it
 
-        this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        if (!this.ownCheck) {
+            let ownCheckName = await extractOwnCheckNameFromWorkflow();
+            let gitHubActionsBotId = GitHubActionsBotId;
+
+            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+        }
 
 
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
@@ -123,17 +128,49 @@ export default class Checks {
 
     };
 
-    reportChecks() {
-        // create table showing the filtered checks, with names and conclusion, created at, updated at, and app id and status
-        core.info("Filtered checks:");
-        core.info("Name | Conclusion | Created at | Updated at |  | Status");
+    determineChecksFailure(checks: ICheck[]): boolean {
+        // if any of the checks are still in_progress or queued or waiting, then we will return false
+        let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
+        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
+        if (anyInProgressQueuedWaiting.length > 0) {
+            return false;
+        }
+        // conclusions that determine a fail
+        let failureConclusions: string[] = [checkConclusion.FAILURE, checkConclusion.TIMED_OUT, checkConclusion.CANCELLED, checkConclusion.ACTION_REQUIRED, checkConclusion.STALE];
+        // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
+        if (!this.treatSkippedAsPassed) {
+            failureConclusions.push(checkConclusion.SKIPPED);
+        }
+
+        // if the user wanted us to treat neutral as a failure, then we will add it to the failureConclusions array
+        if (!this.treatNeutralAsPassed) {
+            failureConclusions.push(checkConclusion.NEUTRAL);
+        }
+
+        // if any of the checks are failing, then we will return true
+        let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion!));
+
+        if (failingChecks.length > 0) {
+            return false;
+        }
+
+        return true;
 
     };
 
     async runLogic() {
-        sleep(this.delay);
         await this.fetchAllChecks();
         await this.filterChecks();
+
+        // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
+
+        let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
+        let allChecksPass = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
+        this.allChecksPassed = allChecksPass;
+        return {
+            allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
+        }
+
     }
 
 
