@@ -1,0 +1,1 @@
+{"version":3,"file":"checkdata.js","sourceRoot":"","sources":["../../src/checks/checkdata.ts"],"names":[],"mappings":";;AAAA,IAAI,IAAI,GAAG;IACP,MAAM,EAAE,MAAM;IACd,UAAU,EAAE,MAAM;IAClB,QAAQ,EAAE,WAAW;IACrB,YAAY,EAAE,SAAS;IACvB,QAAQ,EAAE;QACN,OAAO,EAAE,MAAM;QACf,SAAS,EAAE,MAAM;QACjB,MAAM,EAAE,MAAM;KACjB;CACJ,CAAA"}
