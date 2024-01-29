@@ -1,17 +1,39 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const core = __importStar(require("@actions/core"));
 const checksAPI_1 = require("./checksAPI");
 const checksFilters_1 = require("./checksFilters");
+const timeFuncs_1 = require("../utils/timeFuncs");
 const fileExtractor_1 = require("../utils/fileExtractor");
 const checksConstants_1 = require("./checksConstants");
 class Checks {
     // data
     allChecks = [];
-    allStatuses = [];
     filteredChecks = [];
-    filteredStatuses = [];
     allChecksPassed = false;
-    allStatusesPassed = false;
     missingChecks = [];
     ownCheck; //the check from the workflow run itself
     // inputs
@@ -22,14 +44,9 @@ class Checks {
     checksInclude;
     treatSkippedAsPassed;
     treatNeutralAsPassed;
-    createCheck;
-    includeCommitStatuses;
     poll;
-    delay;
     retries;
     pollingInterval;
-    failStep;
-    failFast;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -38,13 +55,8 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
-        this.createCheck = props.createCheck;
-        this.includeCommitStatuses = props.includeCommitStatuses;
         this.poll = props.poll;
-        this.delay = props.delay;
         this.pollingInterval = props.pollingInterval;
-        this.failStep = props.failStep;
-        this.failFast = props.failFast;
         this.retries = props.retries;
     }
     async fetchAllChecks() {
@@ -53,14 +65,6 @@ class Checks {
         }
         catch (error) {
             throw new Error("Error getting all checks: " + error.message);
-        }
-    }
-    async fetchAllStatusCommits() {
-        try {
-            this.allStatuses = await (0, checksAPI_1.getAllStatusCommits)(this.owner, this.repo, this.ref);
-        }
-        catch (error) {
-            throw new Error("Error getting all statuses: " + error.message);
         }
     }
     async filterChecks() {
@@ -122,7 +126,7 @@ class Checks {
         return true;
     }
     ;
-    async runLogic() {
+    async iterate() {
         await this.fetchAllChecks();
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
@@ -132,6 +136,35 @@ class Checks {
         return {
             allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         };
+    }
+    async run() {
+        let iteration = 0;
+        let allChecksPass = false;
+        let missingChecks = [];
+        let filteredChecksExcludingOwnCheck = [];
+        while (iteration < this.retries) {
+            iteration++;
+            let result = await this.iterate();
+            allChecksPass = result["allChecksPass"];
+            missingChecks = result["missingChecks"];
+            filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
+            //check if the user wants us to poll
+            if (!this.poll) {
+                break;
+            }
+            if (allChecksPass) {
+                break;
+            }
+            await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
+        }
+        // create table with results of filtered checks
+        console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
+        core.summary.addHeading("Checks Summary").addTable([
+            [{ data: 'File', header: true }, { data: 'Result', header: true }],
+            ['foo.js', 'Pass ✅'],
+            ['bar.js', 'Fail ❌'],
+            ['test.js', 'Pass ✅']
+        ]);
     }
 }
 exports.default = Checks;

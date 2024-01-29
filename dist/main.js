@@ -44,7 +44,7 @@ async function run() {
         const repo = github.context.repo.repo;
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
-        const results = await checks.runLogic();
+        const results = await checks.run();
         console.log(JSON.stringify(results, null, 2));
     }
     catch (error) {

@@ -29018,23 +29018,45 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 1935:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
 const checksAPI_1 = __nccwpck_require__(2342);
 const checksFilters_1 = __nccwpck_require__(5319);
+const timeFuncs_1 = __nccwpck_require__(8399);
 const fileExtractor_1 = __nccwpck_require__(1378);
 const checksConstants_1 = __nccwpck_require__(77);
 class Checks {
     // data
     allChecks = [];
-    allStatuses = [];
     filteredChecks = [];
-    filteredStatuses = [];
     allChecksPassed = false;
-    allStatusesPassed = false;
     missingChecks = [];
     ownCheck; //the check from the workflow run itself
     // inputs
@@ -29045,14 +29067,9 @@ class Checks {
     checksInclude;
     treatSkippedAsPassed;
     treatNeutralAsPassed;
-    createCheck;
-    includeCommitStatuses;
     poll;
-    delay;
     retries;
     pollingInterval;
-    failStep;
-    failFast;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -29061,13 +29078,8 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
-        this.createCheck = props.createCheck;
-        this.includeCommitStatuses = props.includeCommitStatuses;
         this.poll = props.poll;
-        this.delay = props.delay;
         this.pollingInterval = props.pollingInterval;
-        this.failStep = props.failStep;
-        this.failFast = props.failFast;
         this.retries = props.retries;
     }
     async fetchAllChecks() {
@@ -29076,14 +29088,6 @@ class Checks {
         }
         catch (error) {
             throw new Error("Error getting all checks: " + error.message);
-        }
-    }
-    async fetchAllStatusCommits() {
-        try {
-            this.allStatuses = await (0, checksAPI_1.getAllStatusCommits)(this.owner, this.repo, this.ref);
-        }
-        catch (error) {
-            throw new Error("Error getting all statuses: " + error.message);
         }
     }
     async filterChecks() {
@@ -29145,7 +29149,7 @@ class Checks {
         return true;
     }
     ;
-    async runLogic() {
+    async iterate() {
         await this.fetchAllChecks();
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
@@ -29155,6 +29159,35 @@ class Checks {
         return {
             allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         };
+    }
+    async run() {
+        let iteration = 0;
+        let allChecksPass = false;
+        let missingChecks = [];
+        let filteredChecksExcludingOwnCheck = [];
+        while (iteration < this.retries) {
+            iteration++;
+            let result = await this.iterate();
+            allChecksPass = result["allChecksPass"];
+            missingChecks = result["missingChecks"];
+            filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
+            //check if the user wants us to poll
+            if (!this.poll) {
+                break;
+            }
+            if (allChecksPass) {
+                break;
+            }
+            await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
+        }
+        // create table with results of filtered checks
+        console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
+        core.summary.addHeading("Checks Summary").addTable([
+            [{ data: 'File', header: true }, { data: 'Result', header: true }],
+            ['foo.js', 'Pass ✅'],
+            ['bar.js', 'Fail ❌'],
+            ['test.js', 'Pass ✅']
+        ]);
     }
 }
 exports["default"] = Checks;
@@ -29168,7 +29201,7 @@ exports["default"] = Checks;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createCheckRun = exports.getJobsForWorkflowRun = exports.getAllStatusCommits = exports.getAllChecks = void 0;
+exports.getAllChecks = void 0;
 const octokit_1 = __nccwpck_require__(3409);
 async function getAllChecks(owner, repo, ref) {
     try {
@@ -29184,52 +29217,72 @@ async function getAllChecks(owner, repo, ref) {
     }
 }
 exports.getAllChecks = getAllChecks;
-async function getAllStatusCommits(owner, repo, ref) {
-    try {
-        let statuses = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/statuses", {
-            owner,
-            repo,
-            ref,
-        });
-        return statuses;
-    }
-    catch (error) {
-        throw new Error("Error getting all statuses: " + error.message);
-    }
-}
-exports.getAllStatusCommits = getAllStatusCommits;
-async function getJobsForWorkflowRun(owner, repo, run_id) {
-    try {
-        let jobs = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/actions/runs/:run_id/jobs", {
-            owner,
-            repo,
-            run_id,
-        });
-        return jobs;
-    }
-    catch (error) {
-        throw new Error("Error getting all jobs: " + error.message);
-    }
-}
-exports.getJobsForWorkflowRun = getJobsForWorkflowRun;
-async function createCheckRun(owner, repo, head_sha, name, status, conclusion, output) {
-    try {
-        let check = await octokit_1.restClient.checks.create({
-            owner,
-            repo,
-            head_sha,
-            name,
-            status,
-            conclusion,
-            output,
-        });
-        return check;
-    }
-    catch (error) {
-        throw new Error("Error creating check: " + error.message);
-    }
-}
-exports.createCheckRun = createCheckRun;
+//
+// export async function getJobsForWorkflowRun(
+//     owner: string,
+//     repo: string,
+//     run_id: number
+// ) {
+//     try {
+//         let jobs = await restClient.paginate(
+//             "GET /repos/:owner/:repo/actions/runs/:run_id/jobs",
+//             {
+//                 owner,
+//                 repo,
+//                 run_id,
+//             }
+//         );
+//         return jobs;
+//     } catch (error: any) {
+//         throw new Error("Error getting all jobs: " + error.message);
+//     }
+// }
+//
+// export async function createCheckRun(
+//     owner: string,
+//     repo: string,
+//     head_sha: string,
+//     name: string,
+//     status: any,
+//     conclusion: any,
+//     output: any
+// ) {
+//     try {
+//         let check = await restClient.checks.create({
+//             owner,
+//             repo,
+//             head_sha,
+//             name,
+//             status,
+//             conclusion,
+//             output,
+//         });
+//         return check;
+//     } catch (error: any) {
+//         throw new Error("Error creating check: " + error.message);
+//     }
+// }
+//
+//
+// export async function getAllStatusCommits(
+//     owner: string,
+//     repo: string,
+//     ref: string
+// ) {
+//     try {
+//         let statuses = await restClient.paginate(
+//             "GET /repos/:owner/:repo/commits/:ref/statuses",
+//             {
+//                 owner,
+//                 repo,
+//                 ref,
+//             }
+//         );
+//         return statuses;
+//     } catch (error: any) {
+//         throw new Error("Error getting all statuses: " + error.message);
+//     }
+// }
 
 
 /***/ }),
@@ -29274,7 +29327,7 @@ exports.GitHubActionsBotId = 15368;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.filterStatusesByCreatorId = exports.filterStatusesByState = exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.filterStatusesByContext = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
+exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
 var FilterTypes;
 (function (FilterTypes) {
     FilterTypes["exclude"] = "exclude";
@@ -29379,16 +29432,6 @@ function removeDuplicateChecksEntriesFromSelf(checks) {
     return uniqueChecks;
 }
 exports.removeDuplicateChecksEntriesFromSelf = removeDuplicateChecksEntriesFromSelf;
-function filterStatusesByContext(statuses, context, filterType = FilterTypes.include) {
-    const regex = new RegExp(context);
-    if (filterType === FilterTypes.include) {
-        return statuses.filter((status) => regex.test(status.context));
-    }
-    else {
-        return statuses.filter((status) => !regex.test(status.context));
-    }
-}
-exports.filterStatusesByContext = filterStatusesByContext;
 function filterChecksByStatus(checks, status) {
     return checks.filter((check) => check.status === status);
 }
@@ -29397,14 +29440,6 @@ function filterChecksByConclusion(checks, conclusion) {
     return checks.filter((check) => check.conclusion === conclusion);
 }
 exports.filterChecksByConclusion = filterChecksByConclusion;
-function filterStatusesByState(statuses, state) {
-    return statuses.filter((status) => status.state === state);
-}
-exports.filterStatusesByState = filterStatusesByState;
-function filterStatusesByCreatorId(statuses, creatorId) {
-    return statuses.filter((status) => status.creator.id === creatorId);
-}
-exports.filterStatusesByCreatorId = filterStatusesByCreatorId;
 
 
 /***/ }),
@@ -29459,7 +29494,7 @@ async function run() {
         const repo = github.context.repo.repo;
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
-        const results = await checks.runLogic();
+        const results = await checks.run();
         console.log(JSON.stringify(results, null, 2));
     }
     catch (error) {
@@ -29601,27 +29636,19 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
-    const createCheck = core.getInput("create_check") == "true";
-    const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
-    const failStep = core.getInput("fail_step") == "true";
-    const failFast = core.getInput("fail_fast") == "true";
     return {
         commitSHA,
         checksInclude,
         checksExclude,
         treatSkippedAsPassed,
         treatNeutralAsPassed,
-        createCheck,
-        includeCommitStatuses,
         poll,
         delay,
         pollingInterval,
-        failStep,
-        failFast,
         retries
     };
 }

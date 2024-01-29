@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterStatusesByCreatorId = exports.filterStatusesByState = exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.filterStatusesByContext = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
+exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
 var FilterTypes;
 (function (FilterTypes) {
     FilterTypes["exclude"] = "exclude";
@@ -105,16 +105,6 @@ function removeDuplicateChecksEntriesFromSelf(checks) {
     return uniqueChecks;
 }
 exports.removeDuplicateChecksEntriesFromSelf = removeDuplicateChecksEntriesFromSelf;
-function filterStatusesByContext(statuses, context, filterType = FilterTypes.include) {
-    const regex = new RegExp(context);
-    if (filterType === FilterTypes.include) {
-        return statuses.filter((status) => regex.test(status.context));
-    }
-    else {
-        return statuses.filter((status) => !regex.test(status.context));
-    }
-}
-exports.filterStatusesByContext = filterStatusesByContext;
 function filterChecksByStatus(checks, status) {
     return checks.filter((check) => check.status === status);
 }
@@ -123,12 +113,4 @@ function filterChecksByConclusion(checks, conclusion) {
     return checks.filter((check) => check.conclusion === conclusion);
 }
 exports.filterChecksByConclusion = filterChecksByConclusion;
-function filterStatusesByState(statuses, state) {
-    return statuses.filter((status) => status.state === state);
-}
-exports.filterStatusesByState = filterStatusesByState;
-function filterStatusesByCreatorId(statuses, creatorId) {
-    return statuses.filter((status) => status.creator.id === creatorId);
-}
-exports.filterStatusesByCreatorId = filterStatusesByCreatorId;
 //# sourceMappingURL=checksFilters.js.map

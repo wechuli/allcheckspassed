@@ -40,27 +40,19 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
-    const createCheck = core.getInput("create_check") == "true";
-    const includeCommitStatuses = core.getInput("include_commit_statuses") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
-    const failStep = core.getInput("fail_step") == "true";
-    const failFast = core.getInput("fail_fast") == "true";
     return {
         commitSHA,
         checksInclude,
         checksExclude,
         treatSkippedAsPassed,
         treatNeutralAsPassed,
-        createCheck,
-        includeCommitStatuses,
         poll,
         delay,
         pollingInterval,
-        failStep,
-        failFast,
         retries
     };
 }
