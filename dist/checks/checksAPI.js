@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCheckRun = exports.getJobsForWorkflowRun = exports.getAllStatusCommits = exports.getAllChecks = void 0;
+exports.getAllChecks = void 0;
 const octokit_1 = require("../utils/octokit");
 async function getAllChecks(owner, repo, ref) {
     try {
@@ -16,50 +16,70 @@ async function getAllChecks(owner, repo, ref) {
     }
 }
 exports.getAllChecks = getAllChecks;
-async function getAllStatusCommits(owner, repo, ref) {
-    try {
-        let statuses = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/commits/:ref/statuses", {
-            owner,
-            repo,
-            ref,
-        });
-        return statuses;
-    }
-    catch (error) {
-        throw new Error("Error getting all statuses: " + error.message);
-    }
-}
-exports.getAllStatusCommits = getAllStatusCommits;
-async function getJobsForWorkflowRun(owner, repo, run_id) {
-    try {
-        let jobs = await octokit_1.restClient.paginate("GET /repos/:owner/:repo/actions/runs/:run_id/jobs", {
-            owner,
-            repo,
-            run_id,
-        });
-        return jobs;
-    }
-    catch (error) {
-        throw new Error("Error getting all jobs: " + error.message);
-    }
-}
-exports.getJobsForWorkflowRun = getJobsForWorkflowRun;
-async function createCheckRun(owner, repo, head_sha, name, status, conclusion, output) {
-    try {
-        let check = await octokit_1.restClient.checks.create({
-            owner,
-            repo,
-            head_sha,
-            name,
-            status,
-            conclusion,
-            output,
-        });
-        return check;
-    }
-    catch (error) {
-        throw new Error("Error creating check: " + error.message);
-    }
-}
-exports.createCheckRun = createCheckRun;
+//
+// export async function getJobsForWorkflowRun(
+//     owner: string,
+//     repo: string,
+//     run_id: number
+// ) {
+//     try {
+//         let jobs = await restClient.paginate(
+//             "GET /repos/:owner/:repo/actions/runs/:run_id/jobs",
+//             {
+//                 owner,
+//                 repo,
+//                 run_id,
+//             }
+//         );
+//         return jobs;
+//     } catch (error: any) {
+//         throw new Error("Error getting all jobs: " + error.message);
+//     }
+// }
+//
+// export async function createCheckRun(
+//     owner: string,
+//     repo: string,
+//     head_sha: string,
+//     name: string,
+//     status: any,
+//     conclusion: any,
+//     output: any
+// ) {
+//     try {
+//         let check = await restClient.checks.create({
+//             owner,
+//             repo,
+//             head_sha,
+//             name,
+//             status,
+//             conclusion,
+//             output,
+//         });
+//         return check;
+//     } catch (error: any) {
+//         throw new Error("Error creating check: " + error.message);
+//     }
+// }
+//
+//
+// export async function getAllStatusCommits(
+//     owner: string,
+//     repo: string,
+//     ref: string
+// ) {
+//     try {
+//         let statuses = await restClient.paginate(
+//             "GET /repos/:owner/:repo/commits/:ref/statuses",
+//             {
+//                 owner,
+//                 repo,
+//                 ref,
+//             }
+//         );
+//         return statuses;
+//     } catch (error: any) {
+//         throw new Error("Error getting all statuses: " + error.message);
+//     }
+// }
 //# sourceMappingURL=checksAPI.js.map
