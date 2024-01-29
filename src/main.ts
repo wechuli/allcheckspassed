@@ -12,7 +12,7 @@ import {sleep} from "./utils/timeFuncs";
 export async function run(): Promise<void> {
     try {
         // delay execution
-        await sleep(sanitizedInputs.delay * 1000);
+        await sleep(sanitizedInputs.delay * 1000 * 60);
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
         const inputs = sanitizedInputs;
