@@ -159,12 +159,12 @@ class Checks {
         }
         // create table with results of filtered checks
         console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
-        core.summary.addHeading("Checks Summary").addTable([
+        await core.summary.addHeading("Checks Summary").addTable([
             [{ data: 'File', header: true }, { data: 'Result', header: true }],
             ['foo.js', 'Pass ✅'],
             ['bar.js', 'Fail ❌'],
             ['test.js', 'Pass ✅']
-        ]);
+        ]).write();
     }
 }
 exports.default = Checks;

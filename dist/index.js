@@ -29182,12 +29182,12 @@ class Checks {
         }
         // create table with results of filtered checks
         console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
-        core.summary.addHeading("Checks Summary").addTable([
+        await core.summary.addHeading("Checks Summary").addTable([
             [{ data: 'File', header: true }, { data: 'Result', header: true }],
             ['foo.js', 'Pass ✅'],
             ['bar.js', 'Fail ❌'],
             ['test.js', 'Pass ✅']
-        ]);
+        ]).write();
     }
 }
 exports["default"] = Checks;
@@ -29494,8 +29494,7 @@ async function run() {
         const repo = github.context.repo.repo;
         const inputs = inputsExtractor_1.sanitizedInputs;
         const checks = new checks_1.default({ ...inputs, owner, repo });
-        const results = await checks.run();
-        console.log(JSON.stringify(results, null, 2));
+        await checks.run();
     }
     catch (error) {
         // Fail the workflow run if an error occurs
