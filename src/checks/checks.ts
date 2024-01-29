@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {IInputs} from '../utils/inputsExtractor';
-import {getAllChecks, getAllStatusCommits} from './checksAPI';
+import {getAllChecks} from './checksAPI';
 import {ICheckInput, ICheck, IStatus} from './checksInterfaces';
 import {
     checkOneOfTheChecksInputIsEmpty, filterChecksByConclusion, filterChecksByStatus,
@@ -21,11 +21,8 @@ interface IRepo {
 export default class Checks {
     // data
     public allChecks: ICheck[] = [];
-    private allStatuses: IStatus[] = [];
     public filteredChecks: ICheck[] = [];
-    private filteredStatuses: IStatus[] = [];
     private allChecksPassed: boolean = false;
-    private allStatusesPassed: boolean = false;
     private missingChecks: ICheckInput[] = [];
     public ownCheck: ICheck | undefined; //the check from the workflow run itself
 
@@ -37,14 +34,9 @@ export default class Checks {
     private checksInclude: ICheckInput[];
     private treatSkippedAsPassed: boolean;
     private treatNeutralAsPassed: boolean;
-    private createCheck: boolean;
-    private includeCommitStatuses: boolean;
     private poll: boolean;
-    private delay: number;
     private retries: number;
     private pollingInterval: number;
-    private failStep: boolean;
-    private failFast: boolean;
 
 
     constructor(props: IRepo & IInputs) {
@@ -55,13 +47,8 @@ export default class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
-        this.createCheck = props.createCheck;
-        this.includeCommitStatuses = props.includeCommitStatuses;
         this.poll = props.poll;
-        this.delay = props.delay;
         this.pollingInterval = props.pollingInterval;
-        this.failStep = props.failStep;
-        this.failFast = props.failFast;
         this.retries = props.retries;
 
     }
@@ -71,14 +58,6 @@ export default class Checks {
             this.allChecks = await getAllChecks(this.owner, this.repo, this.ref) as ICheck[];
         } catch (error: any) {
             throw new Error("Error getting all checks: " + error.message);
-        }
-    }
-
-    async fetchAllStatusCommits() {
-        try {
-            this.allStatuses = await getAllStatusCommits(this.owner, this.repo, this.ref) as IStatus[];
-        } catch (error: any) {
-            throw new Error("Error getting all statuses: " + error.message);
         }
     }
 
@@ -158,7 +137,7 @@ export default class Checks {
 
     };
 
-    async runLogic() {
+    async iterate() {
         await this.fetchAllChecks();
         await this.filterChecks();
 
@@ -170,6 +149,44 @@ export default class Checks {
         return {
             allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         }
+
+    }
+
+    async run() {
+        let iteration = 0;
+        let allChecksPass = false;
+        let missingChecks: ICheckInput[] = [];
+        let filteredChecksExcludingOwnCheck: ICheck[] = [];
+
+        while (iteration < this.retries) {
+            iteration++;
+            let result = await this.iterate();
+            allChecksPass = result["allChecksPass"];
+            missingChecks = result["missingChecks"];
+            filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
+
+            //check if the user wants us to poll
+            if (!this.poll) {
+                break;
+            }
+            if (allChecksPass) {
+                break;
+            }
+            await sleep(this.pollingInterval * 1000 * 60);
+        }
+
+        // create table with results of filtered checks
+
+        console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
+
+        core.summary.addHeading("Checks Summary").addTable([
+
+            [{data: 'File', header: true}, {data: 'Result', header: true}],
+            ['foo.js', 'Pass ✅'],
+            ['bar.js', 'Fail ❌'],
+            ['test.js', 'Pass ✅']
+
+        ]);
 
     }
 

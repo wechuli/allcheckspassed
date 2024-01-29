@@ -28,14 +28,6 @@ inputs:
     description: "If set to true, neutral checks will be treated as passed"
     required: false
     default: "true"
-  create_check:
-    description: "If set to true, the action will create it's own check on the commit, rather than the default created by GitHub Action. Must be a GitHub App token"
-    required: false
-    default: "false"
-  include_commit_statuses:
-    description: "If set to true, the action will include commit statuses in the check, checks and commit statuses have different APIs"
-    required: false
-    default: "false"
   poll:
     description: "Whether to poll the API for completed checks or to simply check once and exit"
     required: false
@@ -52,14 +44,7 @@ inputs:
     description: "The number of times to retry the API call to get the checks, if the API call fails"
     required: false
     default: "10"
-  fail_step:
-    description: "If set to true, the action will fail if the evaluation of the checks fails"
-    required: false
-    default: "true"
-  fail_fast:
-    description: "If set to true, the action will fail as soon as one of the checks reports as failed, default is false, which means it will wait for all checks to be completed"
-    required: false
-    default: "false"
+
 outputs:
   checks:
     description: "List of checks that were checked"

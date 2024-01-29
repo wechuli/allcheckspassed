@@ -19,7 +19,7 @@ export async function run(): Promise<void> {
         const inputs = sanitizedInputs;
 
         const checks = new Checks({...inputs, owner, repo});
-        const results = await checks.runLogic();
+        const results = await checks.run();
         console.log(JSON.stringify(results, null, 2));
 
     } catch (error) {

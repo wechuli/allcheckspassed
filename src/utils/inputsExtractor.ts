@@ -15,13 +15,9 @@ export interface IInputs {
     checksExclude: ICheckInput [];
     treatSkippedAsPassed: boolean;
     treatNeutralAsPassed: boolean;
-    createCheck: boolean;
-    includeCommitStatuses: boolean;
     poll: boolean;
     delay: number;
     pollingInterval: number;
-    failStep: boolean;
-    failFast: boolean;
     retries: number;
 }
 
@@ -40,9 +36,6 @@ function inputsParser(): IInputs {
     const treatSkippedAsPassed: boolean =
         core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed: boolean = core.getInput("treat_neutral_as_passed") == "true";
-    const createCheck: boolean = core.getInput("create_check") == "true";
-    const includeCommitStatuses: boolean =
-        core.getInput("include_commit_statuses") == "true";
     const poll: boolean = core.getInput("poll") == "true";
     const delay: number = validateIntervalValues(
         parseInt(core.getInput("delay"))
@@ -51,8 +44,7 @@ function inputsParser(): IInputs {
         parseInt(core.getInput("polling_interval"))
     );
     const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
-    const failStep: boolean = core.getInput("fail_step") == "true";
-    const failFast: boolean = core.getInput("fail_fast") == "true";
+
 
     return {
         commitSHA,
@@ -60,13 +52,9 @@ function inputsParser(): IInputs {
         checksExclude,
         treatSkippedAsPassed,
         treatNeutralAsPassed,
-        createCheck,
-        includeCommitStatuses,
         poll,
         delay,
         pollingInterval,
-        failStep,
-        failFast,
         retries
     };
 }

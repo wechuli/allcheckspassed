@@ -113,15 +113,6 @@ export function removeDuplicateChecksEntriesFromSelf(checks: ICheck[]): ICheck[]
 }
 
 
-export function filterStatusesByContext(statuses: IStatus[], context: string, filterType: FilterTypes = FilterTypes.include) {
-    const regex = new RegExp(context);
-    if (filterType === FilterTypes.include) {
-        return statuses.filter((status) => regex.test(status.context));
-    } else {
-        return statuses.filter((status) => !regex.test(status.context));
-    }
-}
-
 export function filterChecksByStatus(checks: ICheck[], status: string) {
     return checks.filter((check) => check.status === status);
 }
@@ -130,11 +121,3 @@ export function filterChecksByConclusion(checks: ICheck[], conclusion: string) {
     return checks.filter((check) => check.conclusion === conclusion);
 }
 
-export function filterStatusesByState(statuses: IStatus[], state: string) {
-    return statuses.filter((status) => status.state === state);
-}
-
-
-export function filterStatusesByCreatorId(statuses: IStatus[], creatorId: number) {
-    return statuses.filter((status) => status.creator.id === creatorId);
-}
