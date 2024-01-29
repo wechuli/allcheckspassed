@@ -29741,8 +29741,11 @@ exports.restClient = new octokit.Octokit({
     userAgent: "allcheckspassed-action",
     baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
     log: {
-        debug: console.debug,
-        info: console.info,
+        // don't log info and debug messages
+        info: () => {
+        },
+        debug: () => {
+        },
         warn: console.warn,
         error: console.error,
     },
