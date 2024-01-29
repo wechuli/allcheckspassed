@@ -29182,11 +29182,19 @@ class Checks {
         }
         // create table with results of filtered checks
         console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
+        let checkSummaryHeader = [{ data: 'name', header: true }, { data: 'status', header: true }, {
+                data: 'conclusion',
+                header: true
+            }, { data: 'started_at', header: true }, { data: 'completed_at', header: true }, {
+                data: 'app.name',
+                header: true
+            }, { data: 'app.id', header: true }];
+        let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
+            return [check.name, check.status, check.conclusion, check.started_at, check.completed_at, check.app.name, check.app.id];
+        });
         await core.summary.addHeading("Checks Summary").addTable([
-            [{ data: 'File', header: true }, { data: 'Result', header: true }],
-            ['foo.js', 'Pass ✅'],
-            ['bar.js', 'Fail ❌'],
-            ['test.js', 'Pass ✅']
+            checkSummaryHeader,
+            ...checkSummary
         ]).write();
     }
 }
