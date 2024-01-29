@@ -15,12 +15,9 @@ export async function run(): Promise<void> {
         await sleep(sanitizedInputs.delay * 1000);
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
-
         const inputs = sanitizedInputs;
-
         const checks = new Checks({...inputs, owner, repo});
-        const results = await checks.run();
-        console.log(JSON.stringify(results, null, 2));
+        await checks.run();
 
     } catch (error) {
         // Fail the workflow run if an error occurs
