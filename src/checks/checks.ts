@@ -12,6 +12,7 @@ import {
 import {sleep} from "../utils/timeFuncs";
 import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
 import {checkConclusion, checkStatus, GitHubActionsBotId} from "./checksConstants";
+import {string} from "yaml/dist/schema/common/string";
 
 interface IRepo {
     owner: string;
@@ -188,7 +189,7 @@ export default class Checks {
         }, {data: 'app.id', header: true}];
 
         let checkSummary: any[] = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id]
+            return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()]
         });
 
         console.log("checkSummary", checkSummary);
