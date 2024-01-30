@@ -29190,7 +29190,7 @@ class Checks {
                 header: true
             }, { data: 'app.id', header: true }];
         let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion, check.started_at, check.completed_at, check.app.name, check.app.id];
+            return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id];
         });
         console.log("checkSummary", checkSummary);
         await core.summary.addHeading("Checks Summary").addTable([
