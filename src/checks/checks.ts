@@ -12,7 +12,7 @@ import {
 import {sleep} from "../utils/timeFuncs";
 import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
 import {checkConclusion, checkStatus, GitHubActionsBotId} from "./checksConstants";
-import {string} from "yaml/dist/schema/common/string";
+
 
 interface IRepo {
     owner: string;
