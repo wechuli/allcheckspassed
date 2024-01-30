@@ -158,7 +158,6 @@ class Checks {
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
         }
         // create table with results of filtered checks
-        console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
         let checkSummaryHeader = [{ data: 'name', header: true }, { data: 'status', header: true }, {
                 data: 'conclusion',
                 header: true
@@ -169,11 +168,17 @@ class Checks {
         let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
             return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()];
         });
-        console.log("checkSummary", checkSummary);
         await core.summary.addHeading("Checks Summary").addTable([
             checkSummaryHeader,
             ...checkSummary
         ]).write();
+        // fail the step if the checks did not pass
+        if (!allChecksPass) {
+            core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
+        }
+        if (missingChecks.length > 0) {
+            core.warning("Some checks were not found, please check the workflow run summary to get the details");
+        }
     }
 }
 exports.default = Checks;
