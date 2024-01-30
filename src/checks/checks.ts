@@ -21,11 +21,11 @@ interface IRepo {
 
 export default class Checks {
     // data
-    public allChecks: ICheck[] = [];
-    public filteredChecks: ICheck[] = [];
+    private allChecks: ICheck[] = [];
+    private filteredChecks: ICheck[] = [];
     private allChecksPassed: boolean = false;
     private missingChecks: ICheckInput[] = [];
-    public ownCheck: ICheck | undefined; //the check from the workflow run itself
+    private ownCheck: ICheck | undefined; //the check from the workflow run itself
 
     // inputs
     private owner: string;
@@ -178,8 +178,6 @@ export default class Checks {
 
         // create table with results of filtered checks
 
-        console.log("filteredChecksExcludingOwnCheck", filteredChecksExcludingOwnCheck);
-
         let checkSummaryHeader = [{data: 'name', header: true}, {data: 'status', header: true}, {
             data: 'conclusion',
             header: true
@@ -192,7 +190,6 @@ export default class Checks {
             return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()]
         });
 
-        console.log("checkSummary", checkSummary);
 
         await core.summary.addHeading("Checks Summary").addTable([
 
@@ -201,6 +198,15 @@ export default class Checks {
 
         ]).write();
 
+        // fail the step if the checks did not pass
+        if (!allChecksPass) {
+            core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
+        }
+
+        if (missingChecks.length > 0) {
+            core.warning("Some checks were not found, please check the workflow run summary to get the details");
+        }
+        
     }
 
 
