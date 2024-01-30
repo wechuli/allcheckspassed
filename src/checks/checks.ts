@@ -190,6 +190,9 @@ export default class Checks {
         let checkSummary: any[] = filteredChecksExcludingOwnCheck.map(check => {
             return [check.name, check.status, check.conclusion, check.started_at, check.completed_at, check.app.name, check.app.id]
         });
+
+        console.log("checkSummary", checkSummary);
+        
         await core.summary.addHeading("Checks Summary").addTable([
 
             checkSummaryHeader,
