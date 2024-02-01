@@ -29067,6 +29067,7 @@ class Checks {
     checksInclude;
     treatSkippedAsPassed;
     treatNeutralAsPassed;
+    failOnMissingChecks;
     poll;
     retries;
     pollingInterval;
@@ -29078,6 +29079,7 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
         this.retries = props.retries;
@@ -29165,7 +29167,7 @@ class Checks {
         let allChecksPass = false;
         let missingChecks = [];
         let filteredChecksExcludingOwnCheck = [];
-        while (iteration < this.retries) {
+        do {
             iteration++;
             let result = await this.iterate();
             allChecksPass = result["allChecksPass"];
@@ -29179,7 +29181,7 @@ class Checks {
                 break;
             }
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
-        }
+        } while (iteration < this.retries);
         // create table with results of filtered checks
         let checkSummaryHeader = [{ data: 'name', header: true }, { data: 'status', header: true }, {
                 data: 'conclusion',
@@ -29201,6 +29203,18 @@ class Checks {
         }
         if (missingChecks.length > 0) {
             core.warning("Some checks were not found, please check the workflow run summary to get the details");
+            let missingChecksSummaryHeader = [{ data: 'name', header: true }, { data: 'app.id', header: true }];
+            let missingChecksSummary = missingChecks.map(check => {
+                return [check.name, check.app_id.toString()];
+            });
+            await core.summary.addHeading("Missing Checks").addTable([
+                missingChecksSummaryHeader,
+                ...missingChecksSummary
+            ]).write();
+            // fail if the user wants us to fail on missing checks
+            if (this.failOnMissingChecks) {
+                core.setFailed("Failing due to missing checks");
+            }
         }
     }
 }
@@ -29649,6 +29663,7 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
+    const failOnMissingChecks = core.getInput("fail_on_missing_checks") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
@@ -29662,7 +29677,8 @@ function inputsParser() {
         poll,
         delay,
         pollingInterval,
-        retries
+        retries,
+        failOnMissingChecks
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
