@@ -49,41 +49,41 @@ jobs:
 
 ### Exclude certain checks from causing a failure
 
-You can exclude certain checks from causing a failure by using the `exclude_checks` input. The input accepts a comma
+You can exclude certain checks from causing a failure by using the `checks_exclude` input. The input accepts a comma
 separated string of values:
 
 ```yaml
     steps:
       - uses: wechuli/allcheckspassed@v1
         with:
-          exclude_checks: 'CodeQL,lint,cosmetic'
+          checks_exclude: 'CodeQL,lint,cosmetic'
 ```
 
 You might want to do this to allow certain checks to fail, such as a code quality check, but still require that all
 other checks pass.
 
-The `exclude_checks` and `include_checks` inputs support Regular Expressions. For example, if you want to exclude all
+The `checks_exclude` and `checks_include` inputs support Regular Expressions. For example, if you want to exclude all
 checks have the word `lint` somewhere in the string, you don't have to list them all out, you can use the following:
 
 ```yaml
     steps:
       - uses: wechuli/allcheckspassed@v1
         with:
-          exclude_checks: '.*lint.*'
+          checks_exclude: '.*lint.*'
 ```
 
 ### Include only certain checks
 
 You can choose to include only specific checks for evaluation and ignore others. This is not the primary use case
 for this action, but it is possible. If you want the check to always be included, you might consider using the native
-repository rulesets or branch protection rules. You can't provide both `include_checks` and `exclude_checks` at the same
+repository rulesets or branch protection rules. You can't provide both `checks_include` and `checks_exclude` at the same
 time.
 
 ```yaml
     steps:
       - uses: wechuli/allcheckspassed@v1
         with:
-          include_checks: 'CodeQL'
+          checks_include: 'CodeQL'
 ```
 
 ### What should be considered as passing
@@ -103,7 +103,7 @@ In the above configuration, the action will fail if any of the checks are skippe
 
 ### Missing checks
 
-If you define one or more checks in the `include_checks` input, the action will output a warning if any of the checks
+If you define one or more checks in the `checks_include` input, the action will output a warning if any of the checks
 are missing. You can choose instead to fail the action if any of the checks are missing:
 
 ```yaml
