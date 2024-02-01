@@ -29017,6 +29017,31 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 561:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.addCheckConclusionEmoji = void 0;
+const checkConclusionEmojis = {
+    "action_required": "🔶",
+    "cancelled": "🚫",
+    "failure": "❌",
+    "neutral": "⚪",
+    "success": "✅",
+    "skipped": "⏭️",
+    "stale": "🔄",
+    "timed_out": "⌛"
+};
+function addCheckConclusionEmoji(checkConclusion) {
+    return checkConclusion + checkConclusionEmojis[checkConclusion];
+}
+exports.addCheckConclusionEmoji = addCheckConclusionEmoji;
+
+
+/***/ }),
+
 /***/ 1935:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -29052,6 +29077,7 @@ const checksFilters_1 = __nccwpck_require__(5319);
 const timeFuncs_1 = __nccwpck_require__(8399);
 const fileExtractor_1 = __nccwpck_require__(1378);
 const checksConstants_1 = __nccwpck_require__(77);
+const checkEmoji_1 = __nccwpck_require__(561);
 class Checks {
     // data
     allChecks = [];
@@ -29191,7 +29217,7 @@ class Checks {
                 header: true
             }, { data: 'app.id', header: true }];
         let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion ? check.conclusion : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()];
+            return [check.name, check.status, check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()];
         });
         await core.summary.addHeading("Checks Summary").addTable([
             checkSummaryHeader,
