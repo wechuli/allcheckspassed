@@ -15,5 +15,3 @@ export const restClient = new octokit.Octokit({
         error: console.error,
     },
 });
-
-
