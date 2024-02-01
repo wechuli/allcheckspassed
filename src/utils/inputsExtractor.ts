@@ -19,6 +19,7 @@ export interface IInputs {
     delay: number;
     pollingInterval: number;
     retries: number;
+    failOnMissingChecks: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -36,6 +37,7 @@ function inputsParser(): IInputs {
     const treatSkippedAsPassed: boolean =
         core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed: boolean = core.getInput("treat_neutral_as_passed") == "true";
+    const failOnMissingChecks: boolean = core.getInput("fail_on_missing_checks") == "true";
     const poll: boolean = core.getInput("poll") == "true";
     const delay: number = validateIntervalValues(
         parseInt(core.getInput("delay"))
@@ -55,7 +57,8 @@ function inputsParser(): IInputs {
         poll,
         delay,
         pollingInterval,
-        retries
+        retries,
+        failOnMissingChecks
     };
 }
 

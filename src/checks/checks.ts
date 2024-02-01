@@ -35,6 +35,7 @@ export default class Checks {
     private checksInclude: ICheckInput[];
     private treatSkippedAsPassed: boolean;
     private treatNeutralAsPassed: boolean;
+    private failOnMissingChecks: boolean;
     private poll: boolean;
     private retries: number;
     private pollingInterval: number;
@@ -48,6 +49,7 @@ export default class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
         this.retries = props.retries;
@@ -159,7 +161,7 @@ export default class Checks {
         let missingChecks: ICheckInput[] = [];
         let filteredChecksExcludingOwnCheck: ICheck[] = [];
 
-        while (iteration < this.retries) {
+        do {
             iteration++;
             let result = await this.iterate();
             allChecksPass = result["allChecksPass"];
@@ -174,7 +176,7 @@ export default class Checks {
                 break;
             }
             await sleep(this.pollingInterval * 1000 * 60);
-        }
+        } while (iteration < this.retries);
 
         // create table with results of filtered checks
 
@@ -205,8 +207,24 @@ export default class Checks {
 
         if (missingChecks.length > 0) {
             core.warning("Some checks were not found, please check the workflow run summary to get the details");
+            let missingChecksSummaryHeader = [{data: 'name', header: true}, {data: 'app.id', header: true}];
+            let missingChecksSummary = missingChecks.map(check => {
+                return [check.name, check.app_id.toString()]
+            });
+
+            await core.summary.addHeading("Missing Checks").addTable([
+
+                missingChecksSummaryHeader,
+                ...missingChecksSummary
+
+            ]).write();
+
+            // fail if the user wants us to fail on missing checks
+            if (this.failOnMissingChecks) {
+                core.setFailed("Failing due to missing checks");
+            }
         }
-        
+
     }
 
 

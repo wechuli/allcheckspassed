@@ -44,6 +44,10 @@ inputs:
     description: "The number of times to retry the API call to get the checks, if the API call fails"
     required: false
     default: "10"
+  fail_on_missing_checks:
+    description: "If set to true, the action will fail if one or more checks defined on the checks_include input are not found on the commit"
+    required: false
+    default: "false"
 
 outputs:
   checks:
