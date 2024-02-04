@@ -207,10 +207,10 @@ export default class Checks {
 
         // create an output with details of the checks evaluated
 
-        core.setOutput("checks", JSON.stringify(filteredChecksExcludingOwnCheck));
+        // core.setOutput("checks", JSON.stringify(filteredChecksExcludingOwnCheck)); // revisit why this is not working
 
         // missing checks
-        core.setOutput("missing_checks", JSON.stringify(missingChecks));
+        // core.setOutput("missing_checks", JSON.stringify(missingChecks)); // revisit why this is not working
 
 
         // fail the step if the checks did not pass and the user wants us to fail
