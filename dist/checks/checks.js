@@ -159,6 +159,7 @@ class Checks {
             }
             core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (allChecksPass) {
+                core.info("All checks have passed, stopping polling");
                 break;
             }
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
@@ -179,9 +180,9 @@ class Checks {
             ...checkSummary
         ]).write();
         // create an output with details of the checks evaluated
-        core.setOutput("checks", filteredChecksExcludingOwnCheck);
+        core.setOutput("checks", JSON.stringify(filteredChecksExcludingOwnCheck));
         // missing checks
-        core.setOutput("missing_checks", missingChecks);
+        core.setOutput("missing_checks", JSON.stringify(missingChecks));
         // fail the step if the checks did not pass and the user wants us to fail
         if (!allChecksPass && this.failStep) {
             core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
