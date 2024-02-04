@@ -12,7 +12,7 @@ const checkConclusionEmojis = {
     "timed_out": "⌛"
 };
 function addCheckConclusionEmoji(checkConclusion) {
-    return checkConclusion + checkConclusionEmojis[checkConclusion];
+    return checkConclusion + " " + checkConclusionEmojis[checkConclusion];
 }
 exports.addCheckConclusionEmoji = addCheckConclusionEmoji;
 //# sourceMappingURL=checkEmoji.js.map

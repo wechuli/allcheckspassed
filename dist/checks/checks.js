@@ -46,6 +46,7 @@ class Checks {
     treatSkippedAsPassed;
     treatNeutralAsPassed;
     failOnMissingChecks;
+    failStep;
     poll;
     retries;
     pollingInterval;
@@ -57,6 +58,7 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
@@ -155,6 +157,7 @@ class Checks {
             if (!this.poll) {
                 break;
             }
+            core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (allChecksPass) {
                 break;
             }
@@ -175,8 +178,12 @@ class Checks {
             checkSummaryHeader,
             ...checkSummary
         ]).write();
-        // fail the step if the checks did not pass
-        if (!allChecksPass) {
+        // create an output with details of the checks evaluated
+        core.setOutput("checks", filteredChecksExcludingOwnCheck);
+        // missing checks
+        core.setOutput("missing_checks", missingChecks);
+        // fail the step if the checks did not pass and the user wants us to fail
+        if (!allChecksPass && this.failStep) {
             core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
         }
         if (missingChecks.length > 0) {
@@ -189,8 +196,8 @@ class Checks {
                 missingChecksSummaryHeader,
                 ...missingChecksSummary
             ]).write();
-            // fail if the user wants us to fail on missing checks
-            if (this.failOnMissingChecks) {
+            // fail if the user wants us to fail on missing checks and the failStep is true
+            if (this.failOnMissingChecks && this.failStep) {
                 core.setFailed("Failing due to missing checks");
             }
         }

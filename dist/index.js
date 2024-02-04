@@ -29035,7 +29035,7 @@ const checkConclusionEmojis = {
     "timed_out": "⌛"
 };
 function addCheckConclusionEmoji(checkConclusion) {
-    return checkConclusion + checkConclusionEmojis[checkConclusion];
+    return checkConclusion + " " + checkConclusionEmojis[checkConclusion];
 }
 exports.addCheckConclusionEmoji = addCheckConclusionEmoji;
 
@@ -29094,6 +29094,7 @@ class Checks {
     treatSkippedAsPassed;
     treatNeutralAsPassed;
     failOnMissingChecks;
+    failStep;
     poll;
     retries;
     pollingInterval;
@@ -29105,6 +29106,7 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
@@ -29203,6 +29205,7 @@ class Checks {
             if (!this.poll) {
                 break;
             }
+            core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (allChecksPass) {
                 break;
             }
@@ -29223,8 +29226,12 @@ class Checks {
             checkSummaryHeader,
             ...checkSummary
         ]).write();
-        // fail the step if the checks did not pass
-        if (!allChecksPass) {
+        // create an output with details of the checks evaluated
+        core.setOutput("checks", filteredChecksExcludingOwnCheck);
+        // missing checks
+        core.setOutput("missing_checks", missingChecks);
+        // fail the step if the checks did not pass and the user wants us to fail
+        if (!allChecksPass && this.failStep) {
             core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
         }
         if (missingChecks.length > 0) {
@@ -29237,8 +29244,8 @@ class Checks {
                 missingChecksSummaryHeader,
                 ...missingChecksSummary
             ]).write();
-            // fail if the user wants us to fail on missing checks
-            if (this.failOnMissingChecks) {
+            // fail if the user wants us to fail on missing checks and the failStep is true
+            if (this.failOnMissingChecks && this.failStep) {
                 core.setFailed("Failing due to missing checks");
             }
         }
@@ -29555,7 +29562,6 @@ async function run() {
         if (error instanceof Error) {
             core.setFailed(error.message);
         }
-        ;
     }
 }
 exports.run = run;
@@ -29689,6 +29695,7 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
+    const failStep = core.getInput("fail_step") == "true";
     const failOnMissingChecks = core.getInput("fail_on_missing_checks") == "true";
     const poll = core.getInput("poll") == "true";
     const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
@@ -29704,6 +29711,7 @@ function inputsParser() {
         delay,
         pollingInterval,
         retries,
+        failStep,
         failOnMissingChecks
     };
 }
