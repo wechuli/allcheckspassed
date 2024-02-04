@@ -16,5 +16,5 @@ const checkConclusionEmojis: IEmoji = {
 export function addCheckConclusionEmoji(checkConclusion: string): string {
 
 
-    return checkConclusion + checkConclusionEmojis[checkConclusion];
+    return checkConclusion + " " + checkConclusionEmojis[checkConclusion];
 }

@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import {IInputs} from '../utils/inputsExtractor';
 import {getAllChecks} from './checksAPI';
-import {ICheckInput, ICheck, IStatus} from './checksInterfaces';
+import {ICheckInput, ICheck} from './checksInterfaces';
 import {
-    checkOneOfTheChecksInputIsEmpty, filterChecksByConclusion, filterChecksByStatus,
+    checkOneOfTheChecksInputIsEmpty,
     filterChecksWithMatchingNameAndAppId,
     removeChecksWithMatchingNameAndAppId,
     removeDuplicateChecksEntriesFromSelf,
@@ -37,6 +37,7 @@ export default class Checks {
     private treatSkippedAsPassed: boolean;
     private treatNeutralAsPassed: boolean;
     private failOnMissingChecks: boolean;
+    private failStep: boolean;
     private poll: boolean;
     private retries: number;
     private pollingInterval: number;
@@ -50,6 +51,7 @@ export default class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
@@ -173,6 +175,7 @@ export default class Checks {
             if (!this.poll) {
                 break;
             }
+            core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (allChecksPass) {
                 break;
             }
@@ -201,8 +204,16 @@ export default class Checks {
 
         ]).write();
 
-        // fail the step if the checks did not pass
-        if (!allChecksPass) {
+        // create an output with details of the checks evaluated
+
+        core.setOutput("checks", filteredChecksExcludingOwnCheck);
+
+        // missing checks
+        core.setOutput("missing_checks", missingChecks);
+
+
+        // fail the step if the checks did not pass and the user wants us to fail
+        if (!allChecksPass && this.failStep) {
             core.setFailed("Some checks have failed or timed out, please check the workflow run summary to get the details");
         }
 
@@ -220,8 +231,8 @@ export default class Checks {
 
             ]).write();
 
-            // fail if the user wants us to fail on missing checks
-            if (this.failOnMissingChecks) {
+            // fail if the user wants us to fail on missing checks and the failStep is true
+            if (this.failOnMissingChecks && this.failStep) {
                 core.setFailed("Failing due to missing checks");
             }
         }

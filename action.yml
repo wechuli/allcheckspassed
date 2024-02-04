@@ -44,6 +44,10 @@ inputs:
     description: "The number of times to retry the API call to get the checks, if the API call fails"
     required: false
     default: "10"
+  fail_step:
+    description: "If set to true, the action will fail the step if the conditions for failure are met, defaults to true. Be careful with this option if you have configured rulesets/branch protection rules that require all checks to pass before merging"
+    required: false
+    default: "true"
   fail_on_missing_checks:
     description: "If set to true, the action will fail if one or more checks defined on the checks_include input are not found on the commit"
     required: false
@@ -51,9 +55,10 @@ inputs:
 
 outputs:
   checks:
-    description: "List of checks that were checked"
-  status:
-    description: "The status of the evaluation of the checks"
+    description: "List of checks that were evaluated"
+  missing_checks:
+    description: "List of checks that were not found on the commit"
+
 
 runs:
   using: node20

@@ -2,7 +2,6 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import Checks from "./checks/checks";
 import {sanitizedInputs} from "./utils/inputsExtractor";
-import {extractOwnCheckNameFromWorkflow} from "./utils/fileExtractor";
 import {sleep} from "./utils/timeFuncs";
 
 /**
@@ -22,8 +21,8 @@ export async function run(): Promise<void> {
     } catch (error) {
         // Fail the workflow run if an error occurs
         if (error instanceof Error) {
-            core.setFailed(error.message)
+            core.setFailed(error.message);
         }
-        ;
+
     }
 }
