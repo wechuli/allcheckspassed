@@ -29414,19 +29414,7 @@ function returnChecksWithMatchingNameAndAppId(checks, name, appId) {
         return checksWithNameAndAppID;
     }
     //     if there are multiple checks with the same name, use the app id to pick the most recent check on each unique app id
-    const getUniqueAppId = [...new Set(checksWithNameAndAppID.map((check) => check.app.id))];
-    let mostRecentChecks = [];
-    getUniqueAppId.forEach((appId) => {
-        const checksWithMatchingAppId = checksWithNameAndAppID.filter((check) => check.app.id === appId);
-        // we used regular expressions to get here, so we need to make sure that the checks we are comparing are actually the same
-        const getUniqueCheckName = [...new Set(checksWithMatchingAppId.map((check) => check.name))];
-        getUniqueCheckName.forEach((checkName) => {
-            const checksWithMatchingName = checksWithMatchingAppId.filter((check) => check.name === checkName);
-            const mostRecentCheck = checksWithMatchingName.reduce((prev, current) => (prev.id > current.id) ? prev : current);
-            mostRecentChecks.push(mostRecentCheck);
-        });
-    });
-    return mostRecentChecks;
+    return takeMostRecentChecksForMatchingNameAndAppId(checksWithNameAndAppID);
 }
 exports.returnChecksWithMatchingNameAndAppId = returnChecksWithMatchingNameAndAppId;
 function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
@@ -29441,9 +29429,26 @@ function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
             filteredChecks = [...filteredChecks, ...checksWithNameAndAppId];
         }
     });
-    return { filteredChecks, missingChecks };
+    // at this point, filtered checks may have checks with the same name and app_id, we need to pick the most recent check using the check id
+    const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecks);
+    return { filteredChecks: mostRecentChecks, missingChecks };
 }
 exports.filterChecksWithMatchingNameAndAppId = filterChecksWithMatchingNameAndAppId;
+function takeMostRecentChecksForMatchingNameAndAppId(checks) {
+    const getUniqueAppId = [...new Set(checks.map((check) => check.app.id))];
+    let mostRecentChecks = [];
+    getUniqueAppId.forEach((appId) => {
+        const checksWithMatchingAppId = checks.filter((check) => check.app.id === appId);
+        // we may have used regular expressions to get here, so we need to make sure that the checks we are comparing are actually the same
+        const getUniqueCheckName = [...new Set(checksWithMatchingAppId.map((check) => check.name))];
+        getUniqueCheckName.forEach((checkName) => {
+            const checksWithMatchingName = checksWithMatchingAppId.filter((check) => check.name === checkName);
+            const mostRecentCheck = checksWithMatchingName.reduce((prev, current) => (prev.id > current.id) ? prev : current);
+            mostRecentChecks.push(mostRecentCheck);
+        });
+    });
+    return mostRecentChecks;
+}
 function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let newChecks = [...checks];
     newChecks.forEach(check => {
