@@ -34,7 +34,6 @@ class Checks {
     // data
     allChecks = [];
     filteredChecks = [];
-    allChecksPassed = false;
     missingChecks = [];
     ownCheck; //the check from the workflow run itself
     // inputs
@@ -111,7 +110,7 @@ class Checks {
         let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
         let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
-            return false;
+            return { in_progress: true, passed: false };
         }
         // conclusions that determine a fail
         let failureConclusions = [checksConstants_1.checkConclusion.FAILURE, checksConstants_1.checkConclusion.TIMED_OUT, checksConstants_1.checkConclusion.CANCELLED, checksConstants_1.checkConclusion.ACTION_REQUIRED, checksConstants_1.checkConclusion.STALE];
@@ -126,9 +125,9 @@ class Checks {
         // if any of the checks are failing, then we will return true
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion));
         if (failingChecks.length > 0) {
-            return false;
+            return { in_progress: false, passed: false };
         }
-        return true;
+        return { in_progress: false, passed: true };
     }
     ;
     async iterate() {
@@ -136,21 +135,22 @@ class Checks {
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
         let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
-        let allChecksPass = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
-        this.allChecksPassed = allChecksPass;
+        let checksResult = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
         return {
-            allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
+            checksResult, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         };
     }
     async run() {
         let iteration = 0;
+        let inProgressChecks = true;
         let allChecksPass = false;
         let missingChecks = [];
         let filteredChecksExcludingOwnCheck = [];
         do {
             iteration++;
             let result = await this.iterate();
-            allChecksPass = result["allChecksPass"];
+            inProgressChecks = result["checksResult"]["in_progress"];
+            allChecksPass = result["checksResult"]["passed"];
             missingChecks = result["missingChecks"];
             filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
             //check if the user wants us to poll
@@ -158,8 +158,8 @@ class Checks {
                 break;
             }
             core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
-            if (allChecksPass) {
-                core.info("All checks have passed, stopping polling");
+            if (!inProgressChecks) {
+                core.info("Checks evaluation complete, reporting results");
                 break;
             }
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
