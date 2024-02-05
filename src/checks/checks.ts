@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import {IInputs} from '../utils/inputsExtractor';
 import {getAllChecks} from './checksAPI';
-import {ICheckInput, ICheck} from './checksInterfaces';
+import {ICheckInput, ICheck, IDetermineChecksStatus} from './checksInterfaces';
 import {
     checkOneOfTheChecksInputIsEmpty,
     filterChecksWithMatchingNameAndAppId,
@@ -25,7 +25,6 @@ export default class Checks {
     // data
     private allChecks: ICheck[] = [];
     private filteredChecks: ICheck[] = [];
-    private allChecksPassed: boolean = false;
     private missingChecks: ICheckInput[] = [];
     private ownCheck: ICheck | undefined; //the check from the workflow run itself
 
@@ -114,12 +113,12 @@ export default class Checks {
 
     };
 
-    determineChecksFailure(checks: ICheck[]): boolean {
+    determineChecksFailure(checks: ICheck[]): IDetermineChecksStatus {
         // if any of the checks are still in_progress or queued or waiting, then we will return false
         let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
         let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
-            return false;
+            return {in_progress: true, passed: false};
         }
         // conclusions that determine a fail
         let failureConclusions: string[] = [checkConclusion.FAILURE, checkConclusion.TIMED_OUT, checkConclusion.CANCELLED, checkConclusion.ACTION_REQUIRED, checkConclusion.STALE];
@@ -137,10 +136,10 @@ export default class Checks {
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion!));
 
         if (failingChecks.length > 0) {
-            return false;
+            return {in_progress: false, passed: false};
         }
 
-        return true;
+        return {in_progress: false, passed: true};
 
     };
 
@@ -151,16 +150,17 @@ export default class Checks {
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
 
         let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
-        let allChecksPass = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
-        this.allChecksPassed = allChecksPass;
+        let checksResult = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
+
         return {
-            allChecksPass, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
+            checksResult, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         }
 
     }
 
     async run() {
         let iteration = 0;
+        let inProgressChecks = true;
         let allChecksPass = false;
         let missingChecks: ICheckInput[] = [];
         let filteredChecksExcludingOwnCheck: ICheck[] = [];
@@ -168,7 +168,8 @@ export default class Checks {
         do {
             iteration++;
             let result = await this.iterate();
-            allChecksPass = result["allChecksPass"];
+            inProgressChecks = result["checksResult"]["in_progress"];
+            allChecksPass = result["checksResult"]["passed"];
             missingChecks = result["missingChecks"];
             filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
 
@@ -177,8 +178,8 @@ export default class Checks {
                 break;
             }
             core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
-            if (allChecksPass) {
-                core.info("All checks have passed, stopping polling");
+            if (!inProgressChecks) {
+                core.info("Checks evaluation complete, reporting results");
                 break;
             }
             await sleep(this.pollingInterval * 1000 * 60);
