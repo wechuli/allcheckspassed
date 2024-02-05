@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
+exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.takeMostRecentChecksForMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
 var FilterTypes;
 (function (FilterTypes) {
     FilterTypes["exclude"] = "exclude";
@@ -30,18 +30,18 @@ function returnChecksWithMatchingNameAndAppId(checks, name, appId) {
 exports.returnChecksWithMatchingNameAndAppId = returnChecksWithMatchingNameAndAppId;
 function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let missingChecks = [];
-    let filteredChecks = [];
+    let filteredChecksRaw = [];
     checksInputs.forEach(checkInput => {
         const checksWithNameAndAppId = returnChecksWithMatchingNameAndAppId(checks, checkInput.name, checkInput.app_id);
         if (checksWithNameAndAppId === null) {
             missingChecks.push(checkInput);
         }
         else {
-            filteredChecks = [...filteredChecks, ...checksWithNameAndAppId];
+            filteredChecksRaw = [...filteredChecksRaw, ...checksWithNameAndAppId];
         }
     });
     // at this point, filtered checks may have checks with the same name and app_id, we need to pick the most recent check using the check id
-    const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecks);
+    const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecksRaw);
     return { filteredChecks: mostRecentChecks, missingChecks };
 }
 exports.filterChecksWithMatchingNameAndAppId = filterChecksWithMatchingNameAndAppId;
@@ -60,6 +60,7 @@ function takeMostRecentChecksForMatchingNameAndAppId(checks) {
     });
     return mostRecentChecks;
 }
+exports.takeMostRecentChecksForMatchingNameAndAppId = takeMostRecentChecksForMatchingNameAndAppId;
 function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let newChecks = [...checks];
     newChecks.forEach(check => {

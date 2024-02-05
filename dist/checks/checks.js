@@ -86,7 +86,7 @@ class Checks {
         }
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
-            this.filteredChecks = [...this.allChecks];
+            this.filteredChecks = (0, checksFilters_1.takeMostRecentChecksForMatchingNameAndAppId)(this.allChecks);
             return;
         }
         // if only checks_include is defined, then we will use only the checks that are included
@@ -95,13 +95,13 @@ class Checks {
             // lets separate the object
             let filteredChecks = firstPassthrough["filteredChecks"];
             let missingChecks = firstPassthrough["missingChecks"];
-            this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(filteredChecks);
+            this.filteredChecks = (0, checksFilters_1.takeMostRecentChecksForMatchingNameAndAppId)((0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(filteredChecks));
             this.missingChecks = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
             return;
         }
         if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
             let firstPassthrough = (0, checksFilters_1.removeChecksWithMatchingNameAndAppId)(this.allChecks, this.checksExclude);
-            this.filteredChecks = (0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough);
+            this.filteredChecks = (0, checksFilters_1.takeMostRecentChecksForMatchingNameAndAppId)((0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(firstPassthrough));
             return;
         }
     }
