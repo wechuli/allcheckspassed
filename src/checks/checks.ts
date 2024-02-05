@@ -7,7 +7,8 @@ import {
     filterChecksWithMatchingNameAndAppId,
     removeChecksWithMatchingNameAndAppId,
     removeDuplicateChecksEntriesFromSelf,
-    removeDuplicateEntriesChecksInputsFromSelf
+    removeDuplicateEntriesChecksInputsFromSelf,
+    takeMostRecentChecksForMatchingNameAndAppId
 } from './checksFilters';
 import {sleep} from "../utils/timeFuncs";
 import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
@@ -87,7 +88,7 @@ export default class Checks {
         // if neither checks_include nor checks_exclude are defined, then we will use all checks
 
         if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
-            this.filteredChecks = [...this.allChecks];
+            this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(this.allChecks);
             return;
         }
 
@@ -99,14 +100,14 @@ export default class Checks {
             let filteredChecks = firstPassthrough["filteredChecks"];
             let missingChecks = firstPassthrough["missingChecks"];
 
-            this.filteredChecks = removeDuplicateChecksEntriesFromSelf(filteredChecks);
+            this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(removeDuplicateChecksEntriesFromSelf(filteredChecks));
             this.missingChecks = removeDuplicateEntriesChecksInputsFromSelf(missingChecks);
             return;
         }
 
         if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
             let firstPassthrough = removeChecksWithMatchingNameAndAppId(this.allChecks, this.checksExclude);
-            this.filteredChecks = removeDuplicateChecksEntriesFromSelf(firstPassthrough);
+            this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(removeDuplicateChecksEntriesFromSelf(firstPassthrough));
             return;
         }
 

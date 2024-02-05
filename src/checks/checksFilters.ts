@@ -34,24 +34,25 @@ export function returnChecksWithMatchingNameAndAppId(checks: ICheck[], name: str
 
 export function filterChecksWithMatchingNameAndAppId(checks: ICheck[], checksInputs: ICheckInput[]) {
     let missingChecks: ICheckInput[] = [];
-    let filteredChecks: ICheck[] = [];
+    let filteredChecksRaw: ICheck[] = [];
     checksInputs.forEach(checkInput => {
         const checksWithNameAndAppId = returnChecksWithMatchingNameAndAppId(checks, checkInput.name, checkInput.app_id);
         if (checksWithNameAndAppId === null) {
             missingChecks.push(checkInput);
         } else {
-            filteredChecks = [...filteredChecks, ...checksWithNameAndAppId];
+            filteredChecksRaw = [...filteredChecksRaw, ...checksWithNameAndAppId];
         }
     });
     // at this point, filtered checks may have checks with the same name and app_id, we need to pick the most recent check using the check id
 
-    const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecks);
+    const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecksRaw);
     return {filteredChecks: mostRecentChecks, missingChecks};
 }
 
-function takeMostRecentChecksForMatchingNameAndAppId(checks: ICheck[]): ICheck[] {
+export function takeMostRecentChecksForMatchingNameAndAppId(checks: ICheck[]): ICheck[] {
     const getUniqueAppId = [...new Set(checks.map((check) => check.app.id))];
     let mostRecentChecks: ICheck[] = [];
+
     getUniqueAppId.forEach((appId) => {
         const checksWithMatchingAppId = checks.filter((check) => check.app.id === appId);
 
