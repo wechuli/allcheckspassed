@@ -46,7 +46,7 @@ export function filterChecksWithMatchingNameAndAppId(checks: ICheck[], checksInp
     // at this point, filtered checks may have checks with the same name and app_id, we need to pick the most recent check using the check id
 
     const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecks);
-    return {mostRecentChecks, missingChecks};
+    return {filteredChecks: mostRecentChecks, missingChecks};
 }
 
 function takeMostRecentChecksForMatchingNameAndAppId(checks: ICheck[]): ICheck[] {
