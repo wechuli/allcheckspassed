@@ -29557,6 +29557,7 @@ const timeFuncs_1 = __nccwpck_require__(8399);
 async function run() {
     try {
         // delay execution
+        core.info(`Validating checks, standby...`);
         await (0, timeFuncs_1.sleep)(inputsExtractor_1.sanitizedInputs.delay * 1000 * 60);
         const owner = github.context.repo.owner;
         const repo = github.context.repo.repo;
