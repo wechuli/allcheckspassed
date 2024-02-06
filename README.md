@@ -76,8 +76,7 @@ checks have the word `lint` somewhere in the string, you don't have to list them
 
 You can choose to include only specific checks for evaluation and ignore others. This is not the primary use case
 for this action, but it is possible. If you want the check to always be included, you might consider using the native
-repository rulesets or branch protection rules. You can't provide both `checks_include` and `checks_exclude` at the same
-time.
+repository rulesets or branch protection rules. You can't provide both the `checks_include` and `checks_exclude`inputs.
 
 ```yaml
     steps:
@@ -151,7 +150,8 @@ triggered:
 
 https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#wait-timer
 
-This will save you some minutes if you have a lot of checks that run and you don't want to poll the API for a long time.
+This will save you some minutes if have checks that take a long time to complete and you don't want to poll the API for
+a long time.
 
 ```yaml
 jobs:
@@ -188,4 +188,3 @@ this as some point, at which point you will not need the action anymore.
 - The action is not checking for commit statuses, which uses a different API. If you need this, please open an issue.
 - Unfortunately, you'll need to poll the API to get the state of the checks. The action itself is consuming GitHub
   Actions minutes doing this polling
-- If you are polling too quickly, you may hit the API rate limit
