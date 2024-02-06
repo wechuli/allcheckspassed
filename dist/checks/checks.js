@@ -146,6 +146,7 @@ class Checks {
         let allChecksPass = false;
         let missingChecks = [];
         let filteredChecksExcludingOwnCheck = [];
+        const evaluationCompleteMessage = "Checks evaluation complete, reporting results";
         do {
             iteration++;
             let result = await this.iterate();
@@ -155,11 +156,12 @@ class Checks {
             filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
             //check if the user wants us to poll
             if (!this.poll) {
+                core.info(evaluationCompleteMessage);
                 break;
             }
             core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (!inProgressChecks) {
-                core.info("Checks evaluation complete, reporting results");
+                core.info(evaluationCompleteMessage);
                 break;
             }
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
