@@ -164,6 +164,7 @@ export default class Checks {
         let allChecksPass = false;
         let missingChecks: ICheckInput[] = [];
         let filteredChecksExcludingOwnCheck: ICheck[] = [];
+        const evaluationCompleteMessage = "Checks evaluation complete, reporting results";
 
         do {
             iteration++;
@@ -175,11 +176,12 @@ export default class Checks {
 
             //check if the user wants us to poll
             if (!this.poll) {
+                core.info(evaluationCompleteMessage);
                 break;
             }
             core.info(`Polling API for checks status, iteration: ${iteration} out of ${this.retries}`);
             if (!inProgressChecks) {
-                core.info("Checks evaluation complete, reporting results");
+                core.info(evaluationCompleteMessage);
                 break;
             }
             await sleep(this.pollingInterval * 1000 * 60);
