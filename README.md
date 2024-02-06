@@ -23,6 +23,10 @@ on:
 With this default configuration, the action will fail if any of the checks on the pull request have failed or if
 any of the checks are still in progress, pending or queued when the workflow is complete.
 
+The action also created a checks summary with details of each check that was evaluated and their status:
+
+![Screenshot 2024-02-06 at 15 37 43](https://github.com/wechuli/allcheckspassed/assets/15605874/de9a3a20-02ff-4d96-8da5-0c8300d429e7)
+
 ## How it works
 
 When the workflow is triggered, the action will poll the GitHub API every 1 minute (default) for 10 tries (default) -
