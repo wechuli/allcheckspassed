@@ -44,6 +44,10 @@ inputs:
     description: "The number of times to retry the API call to get the checks, if the API call fails"
     required: false
     default: "10"
+  fail_fast:
+    description: "If set to true, the action will fail the step as soon as a single conditions for failure is met, defaults to false. Can be used to terminate the action early if failure occur quickly while other checks run long."
+    required: false
+    default: "false"
   fail_step:
     description: "If set to true, the action will fail the step if the conditions for failure are met, defaults to true. Be careful with this option if you have configured rulesets/branch protection rules that require all checks to pass before merging"
     required: false
