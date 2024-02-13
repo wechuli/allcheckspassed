@@ -29093,6 +29093,7 @@ class Checks {
     treatSkippedAsPassed;
     treatNeutralAsPassed;
     failOnMissingChecks;
+    failFast;
     failStep;
     poll;
     retries;
@@ -29105,6 +29106,7 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failFast = props.failFast;
         this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
@@ -29154,12 +29156,6 @@ class Checks {
     }
     ;
     determineChecksFailure(checks) {
-        // if any of the checks are still in_progress or queued or waiting, then we will return false
-        let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
-        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
-        if (anyInProgressQueuedWaiting.length > 0) {
-            return { in_progress: true, passed: false };
-        }
         // conclusions that determine a fail
         let failureConclusions = [checksConstants_1.checkConclusion.FAILURE, checksConstants_1.checkConclusion.TIMED_OUT, checksConstants_1.checkConclusion.CANCELLED, checksConstants_1.checkConclusion.ACTION_REQUIRED, checksConstants_1.checkConclusion.STALE];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
@@ -29170,11 +29166,22 @@ class Checks {
         if (!this.treatNeutralAsPassed) {
             failureConclusions.push(checksConstants_1.checkConclusion.NEUTRAL);
         }
-        // if any of the checks are failing, then we will return true
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion));
+        // if any of the checks are failing and we wish to fail fast, then we will return true now
+        if (failingChecks.length > 0 && this.failFast) {
+            return { in_progress: false, passed: false };
+        }
+        // if any of the checks are still in_progress or queued or waiting, then we will return false
+        let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
+        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
+        if (anyInProgressQueuedWaiting.length > 0) {
+            return { in_progress: true, passed: false };
+        }
+        // if any of the checks are failing and we did not fail fast, then we will return true now
         if (failingChecks.length > 0) {
             return { in_progress: false, passed: false };
         }
+        // if none of the above trigger, everything has finished and passed
         return { in_progress: false, passed: true };
     }
     ;
@@ -29705,6 +29712,7 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
+    const failFast = core.getInput("fail_fast") == "true";
     const failStep = core.getInput("fail_step") == "true";
     const failOnMissingChecks = core.getInput("fail_on_missing_checks") == "true";
     const poll = core.getInput("poll") == "true";
@@ -29721,6 +29729,7 @@ function inputsParser() {
         delay,
         pollingInterval,
         retries,
+        failFast,
         failStep,
         failOnMissingChecks
     };
