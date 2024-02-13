@@ -131,7 +131,7 @@ export default class Checks {
         
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion!));
         // if any of the checks are failing and we wish to fail fast, then we will return true now
-        if (failingChecks.length > 0 && failFast) {
+        if (failingChecks.length > 0 && this.failFast) {
             return {in_progress: false, passed: false};
         }
         
