@@ -116,6 +116,7 @@ export default class Checks {
     };
 
     determineChecksFailure(checks: ICheck[]): IDetermineChecksStatus {
+        core.info(this.failFast)
         // conclusions that determine a fail
         let failureConclusions: string[] = [checkConclusion.FAILURE, checkConclusion.TIMED_OUT, checkConclusion.CANCELLED, checkConclusion.ACTION_REQUIRED, checkConclusion.STALE];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
