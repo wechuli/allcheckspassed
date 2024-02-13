@@ -37,6 +37,7 @@ export default class Checks {
     private treatSkippedAsPassed: boolean;
     private treatNeutralAsPassed: boolean;
     private failOnMissingChecks: boolean;
+    private failFast: boolean;
     private failStep: boolean;
     private poll: boolean;
     private retries: number;
@@ -51,6 +52,7 @@ export default class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.failFast = props.failFast;
         this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
         this.poll = props.poll;
@@ -114,12 +116,6 @@ export default class Checks {
     };
 
     determineChecksFailure(checks: ICheck[]): IDetermineChecksStatus {
-        // if any of the checks are still in_progress or queued or waiting, then we will return false
-        let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
-        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
-        if (anyInProgressQueuedWaiting.length > 0) {
-            return {in_progress: true, passed: false};
-        }
         // conclusions that determine a fail
         let failureConclusions: string[] = [checkConclusion.FAILURE, checkConclusion.TIMED_OUT, checkConclusion.CANCELLED, checkConclusion.ACTION_REQUIRED, checkConclusion.STALE];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
@@ -132,13 +128,26 @@ export default class Checks {
             failureConclusions.push(checkConclusion.NEUTRAL);
         }
 
-        // if any of the checks are failing, then we will return true
+        
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion!));
-
-        if (failingChecks.length > 0) {
+        // if any of the checks are failing and we wish to fail fast, then we will return true now
+        if (failingChecks.length > 0 && failFast) {
+            return {in_progress: false, passed: false};
+        }
+        
+        // if any of the checks are still in_progress or queued or waiting, then we will return false
+        let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
+        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
+        if (anyInProgressQueuedWaiting.length > 0) {
+            return {in_progress: true, passed: false};
+        }
+        
+        // if any of the checks are failing and we did not fail fast, then we will return true now
+         if (failingChecks.length > 0) {
             return {in_progress: false, passed: false};
         }
 
+        // if none of the above trigger, everything has finished and passed
         return {in_progress: false, passed: true};
 
     };
