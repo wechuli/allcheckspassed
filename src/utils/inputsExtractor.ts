@@ -19,6 +19,7 @@ export interface IInputs {
     delay: number;
     pollingInterval: number;
     retries: number;
+    failFast: boolean;
     failStep: boolean;
     failOnMissingChecks: boolean;
 }
@@ -38,6 +39,7 @@ function inputsParser(): IInputs {
     const treatSkippedAsPassed: boolean =
         core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed: boolean = core.getInput("treat_neutral_as_passed") == "true";
+    const failFast: boolean = core.getInput("fail_fast") == "true";
     const failStep: boolean = core.getInput("fail_step") == "true";
     const failOnMissingChecks: boolean = core.getInput("fail_on_missing_checks") == "true";
     const poll: boolean = core.getInput("poll") == "true";
@@ -60,6 +62,7 @@ function inputsParser(): IInputs {
         delay,
         pollingInterval,
         retries,
+        failFast,
         failStep,
         failOnMissingChecks
     };
