@@ -145,6 +145,18 @@ You also don't have to poll, you can just run the action once and get the result
 
 ```
 
+### Fail Fast
+
+The fail_fast flag can be used to cause this action to report a failure status as soon as one other check has failed. This differs from the default behavior that will wait for all other checks to finish before reporting a status. Using this flag can save execution costs by failing the action quickly to prevent the usage of additional Github Actions minutes.
+
+```yaml
+    steps:
+      - uses: wechuli/allcheckspassed@v1
+        with:
+          fail_fast: true
+
+```
+
 ## Setup with environments
 
 This action is essentially a workflow run that will consume your GitHub Actions minutes. You may want to delay the
