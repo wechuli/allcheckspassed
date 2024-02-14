@@ -119,7 +119,7 @@ class Checks {
             failureConclusions.push(checksConstants_1.checkConclusion.NEUTRAL);
         }
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion));
-        // if any of the checks are failing and we wish to fail fast, then we will return true now
+        // if any of the checks are failing and we wish to fail fast, then we will return true now - default behavior
         if (failingChecks.length > 0 && this.failFast) {
             return { in_progress: false, passed: false };
         }
