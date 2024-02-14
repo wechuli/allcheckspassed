@@ -128,22 +128,22 @@ export default class Checks {
             failureConclusions.push(checkConclusion.NEUTRAL);
         }
 
-        
+
         let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion!));
-        // if any of the checks are failing and we wish to fail fast, then we will return true now
+        // if any of the checks are failing and we wish to fail fast, then we will return true now - default behavior
         if (failingChecks.length > 0 && this.failFast) {
             return {in_progress: false, passed: false};
         }
-        
+
         // if any of the checks are still in_progress or queued or waiting, then we will return false
         let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
         let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
             return {in_progress: true, passed: false};
         }
-        
+
         // if any of the checks are failing and we did not fail fast, then we will return true now
-         if (failingChecks.length > 0) {
+        if (failingChecks.length > 0) {
             return {in_progress: false, passed: false};
         }
 

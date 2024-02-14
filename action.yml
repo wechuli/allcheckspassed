@@ -45,9 +45,9 @@ inputs:
     required: false
     default: "10"
   fail_fast:
-    description: "If set to true, the action will fail the step as soon as a single conditions for failure is met, defaults to false. Can be used to terminate the action early if failure occur quickly while other checks run long."
+    description: "The action will fail the step as soon as a single conditions for failure is met, defaults to true. This terminates the action early if a failure occurs. If you want to wait for all checks to complete before failing, set this to false"
     required: false
-    default: "false"
+    default: "true"
   fail_step:
     description: "If set to true, the action will fail the step if the conditions for failure are met, defaults to true. Be careful with this option if you have configured rulesets/branch protection rules that require all checks to pass before merging"
     required: false
