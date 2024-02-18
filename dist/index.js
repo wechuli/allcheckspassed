@@ -29122,7 +29122,7 @@ class Checks {
         }
     }
     async filterChecks() {
-        // lets get the check from the workflow run itself, if the value already exists, don't re-fetch it
+        // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
             let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
             let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
@@ -29155,7 +29155,7 @@ class Checks {
         }
     }
     ;
-    determineChecksFailure(checks) {
+    evaluateChecksStatus(checks) {
         // conclusions that determine a fail
         let failureConclusions = [checksConstants_1.checkConclusion.FAILURE, checksConstants_1.checkConclusion.TIMED_OUT, checksConstants_1.checkConclusion.CANCELLED, checksConstants_1.checkConclusion.ACTION_REQUIRED, checksConstants_1.checkConclusion.STALE];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
@@ -29185,12 +29185,12 @@ class Checks {
         return { in_progress: false, passed: true };
     }
     ;
-    async iterate() {
+    async iterateChecks() {
         await this.fetchAllChecks();
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
         let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
-        let checksResult = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
+        let checksResult = this.evaluateChecksStatus(filteredChecksExcludingOwnCheck);
         return {
             checksResult, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
         };
@@ -29204,7 +29204,7 @@ class Checks {
         const evaluationCompleteMessage = "Checks evaluation complete, reporting results";
         do {
             iteration++;
-            let result = await this.iterate();
+            let result = await this.iterateChecks();
             inProgressChecks = result["checksResult"]["in_progress"];
             allChecksPass = result["checksResult"]["passed"];
             missingChecks = result["missingChecks"];
