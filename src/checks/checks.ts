@@ -71,7 +71,7 @@ export default class Checks {
 
     async filterChecks() {
 
-        // lets get the check from the workflow run itself, if the value already exists, don't re-fetch it
+        // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
 
         if (!this.ownCheck) {
             let ownCheckName = await extractOwnCheckNameFromWorkflow();
@@ -115,7 +115,7 @@ export default class Checks {
 
     };
 
-    determineChecksFailure(checks: ICheck[]): IDetermineChecksStatus {
+    evaluateChecksStatus(checks: ICheck[]): IDetermineChecksStatus {
         // conclusions that determine a fail
         let failureConclusions: string[] = [checkConclusion.FAILURE, checkConclusion.TIMED_OUT, checkConclusion.CANCELLED, checkConclusion.ACTION_REQUIRED, checkConclusion.STALE];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
@@ -152,14 +152,14 @@ export default class Checks {
 
     };
 
-    async iterate() {
+    async iterateChecks() {
         await this.fetchAllChecks();
         await this.filterChecks();
 
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
 
         let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
-        let checksResult = this.determineChecksFailure(filteredChecksExcludingOwnCheck);
+        let checksResult = this.evaluateChecksStatus(filteredChecksExcludingOwnCheck);
 
         return {
             checksResult, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
@@ -177,7 +177,7 @@ export default class Checks {
 
         do {
             iteration++;
-            let result = await this.iterate();
+            let result = await this.iterateChecks();
             inProgressChecks = result["checksResult"]["in_progress"];
             allChecksPass = result["checksResult"]["passed"];
             missingChecks = result["missingChecks"];
