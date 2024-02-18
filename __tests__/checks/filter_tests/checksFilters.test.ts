@@ -6,9 +6,9 @@ import {
     returnChecksWithMatchingNameAndAppId,
     filterChecksWithMatchingNameAndAppId,
     removeDuplicateChecksEntriesFromSelf
-} from "../../src/checks/checksFilters";
-import {ICheck, ICheckInput} from "../../src/checks/checksInterfaces";
-import {checkStatus, checkConclusion, commitStatusState} from "../../src/checks/checksConstants";
+} from "../../../src/checks/checksFilters";
+import {ICheck, ICheckInput} from "../../../src/checks/checksInterfaces";
+import {checkStatus, checkConclusion, commitStatusState} from "../../../src/checks/checksConstants";
 
 
 const checksData: ICheck[] = [
