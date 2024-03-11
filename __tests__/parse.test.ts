@@ -6,23 +6,31 @@ describe("parseChecksArray", () => {
 
     it("returns an empty array if input is -1", () => {
         expect(parseChecksArray("-1")).toEqual([]);
-    }   );
+    });
 
     it("returns an array of objects if input is a JSON array", () => {
         expect(parseChecksArray('[{"name":"check1","app_id":1},{"name":"check2","app_id":2}]')).toEqual([{name:"check1",app_id:1},{name:"check2",app_id:2}]);
-    }   );
+    });
+
+    it("returns an array of objects if input is a JSON array omitting empty values", () => {
+        expect(parseChecksArray('[{"name":"check1","app_id":1},{"name":"","app_id":-1}]')).toEqual([{name:"check1",app_id:1}]);
+    });
 
     it("returns an array of objects if input is a JSON object", () => {
         expect(parseChecksArray('{"name":"check1","app_id":1}')).toEqual([{name:"check1",app_id:1}]);
-    }   );
+    });
 
     it("returns an array of objects if input is a comma-separated list of check names", () => {
         expect(parseChecksArray('check1,check2')).toEqual([{name:"check1",app_id:-1},{name:"check2",app_id:-1}]);
-    }   );
+    });
 
     it("returns an array of objects if input is a comma-separated list of check names with spaces", () => {
         expect(parseChecksArray('check1, check2')).toEqual([{name:"check1",app_id:-1},{name:"check2",app_id:-1}]);
-    }   );
+    });
+
+    it("returns an array of objects if input is a comma-separated list of check names with extra commas", () => {
+        expect(parseChecksArray('check1,,check2,')).toEqual([{name:"check1",app_id:-1},{name:"check2",app_id:-1}]);
+    });
 
     it("returns an error if input is invalid JSON",()=>{
         expect(()=>parseChecksArray('{"name":"check1","app_id":1')).toThrowError();
