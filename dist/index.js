@@ -29737,29 +29737,29 @@ function inputsParser() {
 function parseChecksArray(input, inputType = "checks_include") {
     try {
         const trimmedInput = input.trim();
+        let checks = [];
         if (trimmedInput === "-1") {
             return [];
         }
         // attempt to parse as JSON if it starts with { or [
         if (trimmedInput.startsWith("{")) {
-            let parsedInput = JSON.parse("[" + trimmedInput + "]");
-            if (!validateCheckInputs(parsedInput)) {
-                throw new Error();
-            }
-            return parsedInput;
+            checks = JSON.parse("[" + trimmedInput + "]");
         }
-        if (trimmedInput.startsWith("[")) {
-            let parsedInput = JSON.parse(trimmedInput);
-            if (!validateCheckInputs(parsedInput)) {
-                throw new Error();
-            }
-            return parsedInput;
+        else if (trimmedInput.startsWith("[")) {
+            checks = JSON.parse(trimmedInput);
         }
         else {
-            return trimmedInput.split(',').map(element => {
+            // Split by commas.
+            checks = trimmedInput.split(',').map(element => {
                 return { name: element.trim(), app_id: -1 };
             });
         }
+        // Remove checks with no filtering ability
+        checks = checks.filter((c) => c.app_id !== -1 || c.name !== '');
+        if (!validateCheckInputs(checks)) {
+            throw new Error();
+        }
+        return checks;
     }
     catch (error) {
         throw new Error(`Error parsing the ${inputType} input, please provide a comma-separated list of check names, or a valid JSON array of objects with the properties "name" and "app_id"`);
