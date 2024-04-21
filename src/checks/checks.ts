@@ -204,10 +204,10 @@ export default class Checks {
         }, {data: 'started_at', header: true}, {data: 'completed_at', header: true}, {
             data: 'app.name',
             header: true
-        }, {data: 'app.id', header: true}, {data: 'details_url', header: true}];
+        }, {data: 'app.id', header: true}];
 
         let checkSummary: any[] = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion ? addCheckConclusionEmoji(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString(), check.details_url ? `[details](${check.details_url})` : " "]
+            return [check.name, check.status, check.conclusion ? addCheckConclusionEmoji(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()]
         });
 
 
