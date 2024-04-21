@@ -180,9 +180,9 @@ class Checks {
             }, { data: 'started_at', header: true }, { data: 'completed_at', header: true }, {
                 data: 'app.name',
                 header: true
-            }, { data: 'app.id', header: true }];
+            }, { data: 'app.id', header: true }, { data: 'details_url', header: true }];
         let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()];
+            return [check.name, check.status, check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString(), check.details_url ? `[details](${check.details_url})` : " "];
         });
         await core.summary.addHeading("Checks Summary").addTable([
             checkSummaryHeader,
