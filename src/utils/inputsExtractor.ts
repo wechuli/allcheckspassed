@@ -44,10 +44,10 @@ function inputsParser(): IInputs {
     const failOnMissingChecks: boolean = core.getInput("fail_on_missing_checks") == "true";
     const poll: boolean = core.getInput("poll") == "true";
     const delay: number = validateIntervalValues(
-        parseInt(core.getInput("delay"))
+        parseFloat(core.getInput("delay"))
     );
     const pollingInterval: number = validateIntervalValues(
-        parseInt(core.getInput("polling_interval"))
+        parseFloat(core.getInput("polling_interval"))
     );
     const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
 

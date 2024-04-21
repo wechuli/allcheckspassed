@@ -1,6 +1,4 @@
-import { validateIntervalValues } from '../src/utils/validators';
-
-
+import {validateIntervalValues} from '../src/utils/validators';
 
 
 describe("validateIntervalValues", () => {
@@ -32,6 +30,14 @@ describe("validateIntervalValues", () => {
 
     it("return 1 if input i negative infinity", () => {
         expect(validateIntervalValues(-Infinity)).toBe(1);
+    });
+
+    it('returns a float if input is a float', () => {
+        expect(validateIntervalValues(1.5)).toBe(1.5);
+        expect(validateIntervalValues(1.1)).toBe(1.1);
+        expect(validateIntervalValues(0.5)).toBe(0.5);
+        expect(validateIntervalValues(0.1)).toBe(0.1);
+        expect(validateIntervalValues(359.9)).toBe(359.9);
     });
 
 });
