@@ -29716,8 +29716,8 @@ function inputsParser() {
     const failStep = core.getInput("fail_step") == "true";
     const failOnMissingChecks = core.getInput("fail_on_missing_checks") == "true";
     const poll = core.getInput("poll") == "true";
-    const delay = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("delay")));
-    const pollingInterval = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("polling_interval")));
+    const delay = (0, validators_1.validateIntervalValues)(parseFloat(core.getInput("delay")));
+    const pollingInterval = (0, validators_1.validateIntervalValues)(parseFloat(core.getInput("polling_interval")));
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     return {
         commitSHA,
