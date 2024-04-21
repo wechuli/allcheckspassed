@@ -19,6 +19,7 @@ const checksData: ICheck[] = [
         conclusion: checkConclusion.FAILURE,
         started_at: "2023-06-12T22:25:32Z",
         completed_at: "2023-06-12T22:26:32Z",
+        details_url: "details_url1",
         app: {
             id: 1,
             slug: "slug1",
@@ -35,6 +36,7 @@ const checksData: ICheck[] = [
         conclusion: null,
         started_at: "started_at3",
         completed_at: "completed_at3",
+        details_url: "details_url3",
         app: {
             id: 1,
             slug: "slug3",
@@ -51,6 +53,7 @@ const checksData: ICheck[] = [
         conclusion: checkConclusion.FAILURE,
         started_at: "started_at2",
         completed_at: "completed_at2",
+        details_url: "details_url2",
         app: {
             id: 2,
             slug: "slug2",
@@ -67,6 +70,7 @@ const checksData: ICheck[] = [
         conclusion: checkConclusion.SUCCESS,
         started_at: "started_at4",
         completed_at: "completed_at4",
+        details_url: "details_url4",
         app: {
             id: 2,
             slug: "slug4",
@@ -83,6 +87,7 @@ const checksData: ICheck[] = [
         conclusion: checkConclusion.FAILURE,
         started_at: "started_at2",
         completed_at: "completed_at2",
+        details_url: "details_url2",
         app: {
             id: 3,
             slug: "slug2",

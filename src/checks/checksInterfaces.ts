@@ -5,6 +5,7 @@ export interface ICheck {
     conclusion: string | null;
     started_at: string;
     completed_at: string | null;
+    details_url: string;
     check_suite: {
         id: number;
     }
