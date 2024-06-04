@@ -56,6 +56,10 @@ inputs:
     description: "If set to true, the action will fail if one or more checks defined on the checks_include input are not found on the commit"
     required: false
     default: "false"
+  verbose:
+    description: "If set to true, the action will log which checks are being waited on in each iteration"
+    required: false
+    default: "false"
 
 outputs:
   checks:

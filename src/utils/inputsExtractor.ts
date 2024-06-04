@@ -22,6 +22,7 @@ export interface IInputs {
     failFast: boolean;
     failStep: boolean;
     failOnMissingChecks: boolean;
+    verbose: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -50,6 +51,7 @@ function inputsParser(): IInputs {
         parseFloat(core.getInput("polling_interval"))
     );
     const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
+    const verbose: boolean = core.getInput("verbose") == "true";
 
 
     return {
@@ -64,7 +66,8 @@ function inputsParser(): IInputs {
         retries,
         failFast,
         failStep,
-        failOnMissingChecks
+        failOnMissingChecks,
+        verbose
     };
 }
 

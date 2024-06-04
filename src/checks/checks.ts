@@ -12,7 +12,7 @@ import {
 } from './checksFilters';
 import {sleep} from "../utils/timeFuncs";
 import {extractOwnCheckNameFromWorkflow} from "../utils/fileExtractor";
-import {checkConclusion, checkStatus, GitHubActionsBotId} from "./checksConstants";
+import {checkConclusion, checkStatus, GitHubActionsBotSlug} from "./checksConstants";
 import {addCheckConclusionEmoji} from "./checkEmoji";
 
 
@@ -42,6 +42,7 @@ export default class Checks {
     private poll: boolean;
     private retries: number;
     private pollingInterval: number;
+    private verbose: boolean;
 
 
     constructor(props: IRepo & IInputs) {
@@ -58,6 +59,7 @@ export default class Checks {
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
         this.retries = props.retries;
+        this.verbose = props.verbose;
 
     }
 
@@ -75,9 +77,12 @@ export default class Checks {
 
         if (!this.ownCheck) {
             let ownCheckName = await extractOwnCheckNameFromWorkflow();
-            let gitHubActionsBotId = GitHubActionsBotId;
 
-            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.slug === GitHubActionsBotSlug);
+
+            if (!this.ownCheck) {
+                core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);
+            }
         }
 
 
@@ -139,6 +144,12 @@ export default class Checks {
         let inProgressQueuedWaiting = [checkStatus.IN_PROGRESS, checkStatus.QUEUED, checkStatus.WAITING]
         let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
+            if (this.verbose) {
+                anyInProgressQueuedWaiting.forEach((check) => {
+                    core.info(`Waiting for check completion of ${JSON.stringify(check.name)}`);
+                });
+            }
+
             return {in_progress: true, passed: false};
         }
 

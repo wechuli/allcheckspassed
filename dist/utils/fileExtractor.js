@@ -30,6 +30,7 @@ exports.extractOwnCheckNameFromWorkflow = void 0;
 const yaml_1 = __importDefault(require("yaml"));
 const inputsExtractor_1 = require("./inputsExtractor");
 const octokit_1 = require("./octokit");
+const core = __importStar(require("@actions/core"));
 const github = __importStar(require("@actions/github"));
 function extractFilePath(input = process.env.GITHUB_WORKFLOW_REF) {
     if (input === undefined) {
@@ -65,6 +66,7 @@ async function extractOwnCheckNameFromWorkflow(owner = github.context.repo.owner
         return checkName;
     }
     catch (error) {
+        core.warning(`Error extracting job name from workflow file, falling back to ${JSON.stringify(jobName)} (this may not be correct): ${error}`);
         // If we have some error getting and parsing the file, we just return the job name
         return jobName;
     }

@@ -50,6 +50,7 @@ class Checks {
     poll;
     retries;
     pollingInterval;
+    verbose;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -64,6 +65,7 @@ class Checks {
         this.poll = props.poll;
         this.pollingInterval = props.pollingInterval;
         this.retries = props.retries;
+        this.verbose = props.verbose;
     }
     async fetchAllChecks() {
         try {
@@ -77,8 +79,10 @@ class Checks {
         // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
             let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
-            let gitHubActionsBotId = checksConstants_1.GitHubActionsBotId;
-            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.id === gitHubActionsBotId);
+            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
+            if (!this.ownCheck) {
+                core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);
+            }
         }
         // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
         let ambigousChecks = (0, checksFilters_1.checkOneOfTheChecksInputIsEmpty)(this.checksInclude, this.checksExclude);
@@ -127,6 +131,11 @@ class Checks {
         let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
         let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
+            if (this.verbose) {
+                anyInProgressQueuedWaiting.forEach((check) => {
+                    core.info(`Waiting for check completion of ${JSON.stringify(check.name)}`);
+                });
+            }
             return { in_progress: true, passed: false };
         }
         // if any of the checks are failing and we did not fail fast, then we will return true now

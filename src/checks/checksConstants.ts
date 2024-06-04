@@ -24,4 +24,4 @@ export const commitStatusState = {
     SUCCESS: "success"
 }
 
-export const GitHubActionsBotId = 15368;
+export const GitHubActionsBotSlug = 'github-actions';

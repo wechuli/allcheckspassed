@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GitHubActionsBotId = exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
+exports.GitHubActionsBotSlug = exports.commitStatusState = exports.checkStatus = exports.checkConclusion = void 0;
 exports.checkConclusion = {
     ACTION_REQUIRED: "action_required",
     CANCELLED: "cancelled",
@@ -23,5 +23,5 @@ exports.commitStatusState = {
     PENDING: "pending",
     SUCCESS: "success"
 };
-exports.GitHubActionsBotId = 15368;
+exports.GitHubActionsBotSlug = 'github-actions';
 //# sourceMappingURL=checksConstants.js.map
