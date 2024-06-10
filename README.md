@@ -162,6 +162,20 @@ for all checks to complete before reporting a failure, you can set the fail_fast
 
 ```
 
+### Verbose logging
+
+To enable additional logging when the action runs, you may enable the `verbose` mode (defaults to false). The additional
+logs will indicate which specific checks are being waited on in each polling iteration. This may be helpful in debugging
+what checks are matched by `checks_include` or `checks_exclude`.
+
+```yaml
+    steps:
+      - uses: wechuli/allcheckspassed@v1
+        with:
+          verbose: true
+```
+
+
 ## Setup with environments
 
 This action is essentially a workflow run that will consume your GitHub Actions minutes. You may want to delay the

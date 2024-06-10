@@ -2,6 +2,7 @@
 import yaml from "yaml";
 import { sanitizedInputs} from "./inputsExtractor";
 import { restClient } from "./octokit";
+import * as core from '@actions/core';
 import * as github from "@actions/github";
 
 interface IJob {
@@ -52,6 +53,7 @@ export async function extractOwnCheckNameFromWorkflow(owner: string = github.con
         let checkName: string = workflow.jobs[jobName].name || jobName;
         return checkName;
     } catch (error: any) {
+        core.warning(`Error extracting job name from workflow file, falling back to ${JSON.stringify(jobName)} (this may not be correct): ${error}`);
         // If we have some error getting and parsing the file, we just return the job name
         return jobName;
     }

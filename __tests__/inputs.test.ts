@@ -12,20 +12,18 @@ describe("validateIntervalValues", () => {
         expect(validateIntervalValues(NaN)).toBe(1);
     });
 
-    it("returns 360 if input is Infinity", () => {
-        expect(validateIntervalValues(Infinity)).toBe(360);
+    it("returns 1 if input is Infinity", () => {
+        expect(validateIntervalValues(Infinity)).toBe(1);
     });
 
-    it("returns 360 if input is greater than 360", () => {
-        expect(validateIntervalValues(361)).toBe(360);
-        expect(validateIntervalValues(1000)).toBe(360);
-    });
-    it("returns input if input is between 0 and 360", () => {
+    it("returns input for inputs greater than 0", () => {
         expect(validateIntervalValues(0)).toBe(0);
         expect(validateIntervalValues(1)).toBe(1);
         expect(validateIntervalValues(2)).toBe(2);
         expect(validateIntervalValues(359)).toBe(359);
         expect(validateIntervalValues(360)).toBe(360);
+        expect(validateIntervalValues(361)).toBe(361);
+        expect(validateIntervalValues(1000)).toBe(1000);
     });
 
     it("return 1 if input i negative infinity", () => {

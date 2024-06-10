@@ -47,6 +47,7 @@ function inputsParser() {
     const delay = (0, validators_1.validateIntervalValues)(parseFloat(core.getInput("delay")));
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseFloat(core.getInput("polling_interval")));
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
+    const verbose = core.getInput("verbose") == "true";
     return {
         commitSHA,
         checksInclude,
@@ -59,7 +60,8 @@ function inputsParser() {
         retries,
         failFast,
         failStep,
-        failOnMissingChecks
+        failOnMissingChecks,
+        verbose
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
