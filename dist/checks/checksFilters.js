@@ -1,6 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.filterChecksByConclusion = exports.filterChecksByStatus = exports.removeDuplicateChecksEntriesFromSelf = exports.removeDuplicateEntriesChecksInputsFromSelf = exports.checkOneOfTheChecksInputIsEmpty = exports.removeChecksWithMatchingNameAndAppId = exports.takeMostRecentChecksForMatchingNameAndAppId = exports.filterChecksWithMatchingNameAndAppId = exports.returnChecksWithMatchingNameAndAppId = exports.FilterTypes = void 0;
+exports.FilterTypes = void 0;
+exports.returnChecksWithMatchingNameAndAppId = returnChecksWithMatchingNameAndAppId;
+exports.filterChecksWithMatchingNameAndAppId = filterChecksWithMatchingNameAndAppId;
+exports.takeMostRecentChecksForMatchingNameAndAppId = takeMostRecentChecksForMatchingNameAndAppId;
+exports.removeChecksWithMatchingNameAndAppId = removeChecksWithMatchingNameAndAppId;
+exports.checkOneOfTheChecksInputIsEmpty = checkOneOfTheChecksInputIsEmpty;
+exports.removeDuplicateEntriesChecksInputsFromSelf = removeDuplicateEntriesChecksInputsFromSelf;
+exports.removeDuplicateChecksEntriesFromSelf = removeDuplicateChecksEntriesFromSelf;
+exports.filterChecksByStatus = filterChecksByStatus;
+exports.filterChecksByConclusion = filterChecksByConclusion;
 var FilterTypes;
 (function (FilterTypes) {
     FilterTypes["exclude"] = "exclude";
@@ -27,7 +36,6 @@ function returnChecksWithMatchingNameAndAppId(checks, name, appId) {
     //     if there are multiple checks with the same name, use the app id to pick the most recent check on each unique app id
     return takeMostRecentChecksForMatchingNameAndAppId(checksWithNameAndAppID);
 }
-exports.returnChecksWithMatchingNameAndAppId = returnChecksWithMatchingNameAndAppId;
 function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let missingChecks = [];
     let filteredChecksRaw = [];
@@ -44,7 +52,6 @@ function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
     const mostRecentChecks = takeMostRecentChecksForMatchingNameAndAppId(filteredChecksRaw);
     return { filteredChecks: mostRecentChecks, missingChecks };
 }
-exports.filterChecksWithMatchingNameAndAppId = filterChecksWithMatchingNameAndAppId;
 function takeMostRecentChecksForMatchingNameAndAppId(checks) {
     const getUniqueAppId = [...new Set(checks.map((check) => check.app.id))];
     let mostRecentChecks = [];
@@ -60,7 +67,6 @@ function takeMostRecentChecksForMatchingNameAndAppId(checks) {
     });
     return mostRecentChecks;
 }
-exports.takeMostRecentChecksForMatchingNameAndAppId = takeMostRecentChecksForMatchingNameAndAppId;
 function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let newChecks = [...checks];
     newChecks.forEach(check => {
@@ -80,14 +86,12 @@ function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
     });
     return newChecks;
 }
-exports.removeChecksWithMatchingNameAndAppId = removeChecksWithMatchingNameAndAppId;
 function checkOneOfTheChecksInputIsEmpty(checksInputs1, checksInputs2) {
     if (checksInputs1.length === 0 || checksInputs2.length === 0) {
         return true;
     }
     return false;
 }
-exports.checkOneOfTheChecksInputIsEmpty = checkOneOfTheChecksInputIsEmpty;
 function removeDuplicateEntriesChecksInputsFromSelf(checksInputs) {
     let uniqueCheckInputs = [];
     checksInputs.forEach((checkInput) => {
@@ -98,7 +102,6 @@ function removeDuplicateEntriesChecksInputsFromSelf(checksInputs) {
     });
     return uniqueCheckInputs;
 }
-exports.removeDuplicateEntriesChecksInputsFromSelf = removeDuplicateEntriesChecksInputsFromSelf;
 function removeDuplicateChecksEntriesFromSelf(checks) {
     // use the check id to determine uniqueness
     let uniqueChecks = [];
@@ -110,13 +113,10 @@ function removeDuplicateChecksEntriesFromSelf(checks) {
     });
     return uniqueChecks;
 }
-exports.removeDuplicateChecksEntriesFromSelf = removeDuplicateChecksEntriesFromSelf;
 function filterChecksByStatus(checks, status) {
     return checks.filter((check) => check.status === status);
 }
-exports.filterChecksByStatus = filterChecksByStatus;
 function filterChecksByConclusion(checks, conclusion) {
     return checks.filter((check) => check.conclusion === conclusion);
 }
-exports.filterChecksByConclusion = filterChecksByConclusion;
 //# sourceMappingURL=checksFilters.js.map

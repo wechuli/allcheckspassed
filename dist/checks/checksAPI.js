@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllChecks = void 0;
+exports.getAllChecks = getAllChecks;
 const octokit_1 = require("../utils/octokit");
 async function getAllChecks(owner, repo, ref) {
     try {
@@ -15,7 +15,6 @@ async function getAllChecks(owner, repo, ref) {
         throw new Error("Error getting all checks: " + error.message);
     }
 }
-exports.getAllChecks = getAllChecks;
 //
 // export async function getJobsForWorkflowRun(
 //     owner: string,
