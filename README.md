@@ -175,6 +175,17 @@ what checks are matched by `checks_include` or `checks_exclude`.
           verbose: true
 ```
 
+### Job summary
+
+By default, the action will create a job summary with the details of each check that was evaluated and their status. You can disable the job summary by setting  the `show_job_summary` input to false. This will prevent the action from creating a job summary at the end of the workflow run.
+
+```yaml
+    steps:
+      - uses: wechuli/allcheckspassed@v1
+        with:
+          show_job_summary: false
+```
+
 
 ## Setup with environments
 
