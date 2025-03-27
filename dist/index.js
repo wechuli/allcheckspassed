@@ -6868,7 +6868,7 @@ var RequestError = class extends Error {
     if (options.request.headers.authorization) {
       requestCopy.headers = Object.assign({}, options.request.headers, {
         authorization: options.request.headers.authorization.replace(
-          / .*$/,
+          /(?<! ) .*$/,
           " [REDACTED]"
         )
       });
@@ -32564,6 +32564,7 @@ class Checks {
     retries;
     pollingInterval;
     verbose;
+    showJobSummary;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -32579,10 +32580,11 @@ class Checks {
         this.pollingInterval = props.pollingInterval;
         this.retries = props.retries;
         this.verbose = props.verbose;
+        this.showJobSummary = props.showJobSummary;
     }
     async fetchAllChecks() {
         try {
-            this.allChecks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
+            this.allChecks = (await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref));
         }
         catch (error) {
             throw new Error("Error getting all checks: " + error.message);
@@ -32592,7 +32594,7 @@ class Checks {
         // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
             let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
-            this.ownCheck = this.allChecks.find(check => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
+            this.ownCheck = this.allChecks.find((check) => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
             if (!this.ownCheck) {
                 core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);
             }
@@ -32614,7 +32616,8 @@ class Checks {
             let filteredChecks = firstPassthrough["filteredChecks"];
             let missingChecks = firstPassthrough["missingChecks"];
             this.filteredChecks = (0, checksFilters_1.takeMostRecentChecksForMatchingNameAndAppId)((0, checksFilters_1.removeDuplicateChecksEntriesFromSelf)(filteredChecks));
-            this.missingChecks = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
+            this.missingChecks =
+                (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(missingChecks);
             return;
         }
         if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
@@ -32623,10 +32626,15 @@ class Checks {
             return;
         }
     }
-    ;
     evaluateChecksStatus(checks) {
         // conclusions that determine a fail
-        let failureConclusions = [checksConstants_1.checkConclusion.FAILURE, checksConstants_1.checkConclusion.TIMED_OUT, checksConstants_1.checkConclusion.CANCELLED, checksConstants_1.checkConclusion.ACTION_REQUIRED, checksConstants_1.checkConclusion.STALE];
+        let failureConclusions = [
+            checksConstants_1.checkConclusion.FAILURE,
+            checksConstants_1.checkConclusion.TIMED_OUT,
+            checksConstants_1.checkConclusion.CANCELLED,
+            checksConstants_1.checkConclusion.ACTION_REQUIRED,
+            checksConstants_1.checkConclusion.STALE,
+        ];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
         if (!this.treatSkippedAsPassed) {
             failureConclusions.push(checksConstants_1.checkConclusion.SKIPPED);
@@ -32635,14 +32643,18 @@ class Checks {
         if (!this.treatNeutralAsPassed) {
             failureConclusions.push(checksConstants_1.checkConclusion.NEUTRAL);
         }
-        let failingChecks = checks.filter(check => failureConclusions.includes(check.conclusion));
+        let failingChecks = checks.filter((check) => failureConclusions.includes(check.conclusion));
         // if any of the checks are failing and we wish to fail fast, then we will return true now - default behavior
         if (failingChecks.length > 0 && this.failFast) {
             return { in_progress: false, passed: false };
         }
         // if any of the checks are still in_progress or queued or waiting, then we will return false
-        let inProgressQueuedWaiting = [checksConstants_1.checkStatus.IN_PROGRESS, checksConstants_1.checkStatus.QUEUED, checksConstants_1.checkStatus.WAITING];
-        let anyInProgressQueuedWaiting = checks.filter(check => inProgressQueuedWaiting.includes(check.status));
+        let inProgressQueuedWaiting = [
+            checksConstants_1.checkStatus.IN_PROGRESS,
+            checksConstants_1.checkStatus.QUEUED,
+            checksConstants_1.checkStatus.WAITING,
+        ];
+        let anyInProgressQueuedWaiting = checks.filter((check) => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {
             if (this.verbose) {
                 anyInProgressQueuedWaiting.forEach((check) => {
@@ -32658,15 +32670,16 @@ class Checks {
         // if none of the above trigger, everything has finished and passed
         return { in_progress: false, passed: true };
     }
-    ;
     async iterateChecks() {
         await this.fetchAllChecks();
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
-        let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(check => check.id !== this.ownCheck?.id);
+        let filteredChecksExcludingOwnCheck = this.filteredChecks.filter((check) => check.id !== this.ownCheck?.id);
         let checksResult = this.evaluateChecksStatus(filteredChecksExcludingOwnCheck);
         return {
-            checksResult, missingChecks: this.missingChecks, filteredChecksExcludingOwnCheck
+            checksResult,
+            missingChecks: this.missingChecks,
+            filteredChecksExcludingOwnCheck,
         };
     }
     async run() {
@@ -32682,7 +32695,8 @@ class Checks {
             inProgressChecks = result["checksResult"]["in_progress"];
             allChecksPass = result["checksResult"]["passed"];
             missingChecks = result["missingChecks"];
-            filteredChecksExcludingOwnCheck = result["filteredChecksExcludingOwnCheck"];
+            filteredChecksExcludingOwnCheck =
+                result["filteredChecksExcludingOwnCheck"];
             //check if the user wants us to poll
             if (!this.poll) {
                 core.info(evaluationCompleteMessage);
@@ -32696,20 +32710,38 @@ class Checks {
             await (0, timeFuncs_1.sleep)(this.pollingInterval * 1000 * 60);
         } while (iteration < this.retries);
         // create table with results of filtered checks
-        let checkSummaryHeader = [{ data: 'name', header: true }, { data: 'status', header: true }, {
-                data: 'conclusion',
-                header: true
-            }, { data: 'started_at', header: true }, { data: 'completed_at', header: true }, {
-                data: 'app.name',
-                header: true
-            }, { data: 'app.id', header: true }];
-        let checkSummary = filteredChecksExcludingOwnCheck.map(check => {
-            return [check.name, check.status, check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ", check.started_at, check.completed_at ? check.completed_at : " ", check.app.name, check.app.id.toString()];
+        let checkSummaryHeader = [
+            { data: "name", header: true },
+            { data: "status", header: true },
+            {
+                data: "conclusion",
+                header: true,
+            },
+            { data: "started_at", header: true },
+            { data: "completed_at", header: true },
+            {
+                data: "app.name",
+                header: true,
+            },
+            { data: "app.id", header: true },
+        ];
+        let checkSummary = filteredChecksExcludingOwnCheck.map((check) => {
+            return [
+                check.name,
+                check.status,
+                check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ",
+                check.started_at,
+                check.completed_at ? check.completed_at : " ",
+                check.app.name,
+                check.app.id.toString(),
+            ];
         });
-        await core.summary.addHeading("Checks Summary").addTable([
-            checkSummaryHeader,
-            ...checkSummary
-        ]).write();
+        if (this.showJobSummary) {
+            await core.summary
+                .addHeading("Checks Summary")
+                .addTable([checkSummaryHeader, ...checkSummary])
+                .write();
+        }
         // create an output with details of the checks evaluated
         // core.setOutput("checks", JSON.stringify(filteredChecksExcludingOwnCheck)); // revisit why this is not working
         // missing checks
@@ -32720,14 +32752,19 @@ class Checks {
         }
         if (missingChecks.length > 0) {
             core.warning("Some checks were not found, please check the workflow run summary to get the details");
-            let missingChecksSummaryHeader = [{ data: 'name', header: true }, { data: 'app.id', header: true }];
-            let missingChecksSummary = missingChecks.map(check => {
+            let missingChecksSummaryHeader = [
+                { data: "name", header: true },
+                { data: "app.id", header: true },
+            ];
+            let missingChecksSummary = missingChecks.map((check) => {
                 return [check.name, check.app_id.toString()];
             });
-            await core.summary.addHeading("Missing Checks").addTable([
-                missingChecksSummaryHeader,
-                ...missingChecksSummary
-            ]).write();
+            if (this.showJobSummary) {
+                await core.summary
+                    .addHeading("Missing Checks")
+                    .addTable([missingChecksSummaryHeader, ...missingChecksSummary])
+                    .write();
+            }
             // fail if the user wants us to fail on missing checks and the failStep is true
             if (this.failOnMissingChecks && this.failStep) {
                 core.setFailed("Failing due to missing checks");
@@ -33226,6 +33263,7 @@ function inputsParser() {
     const pollingInterval = (0, validators_1.validateIntervalValues)(parseFloat(core.getInput("polling_interval")));
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     const verbose = core.getInput("verbose") == "true";
+    const showJobSummary = core.getInput("show_job_summary") == "true";
     return {
         commitSHA,
         checksInclude,
@@ -33239,7 +33277,8 @@ function inputsParser() {
         failFast,
         failStep,
         failOnMissingChecks,
-        verbose
+        verbose,
+        showJobSummary
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
