@@ -23,6 +23,7 @@ export interface IInputs {
     failStep: boolean;
     failOnMissingChecks: boolean;
     verbose: boolean;
+    showJobSummary: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -52,6 +53,7 @@ function inputsParser(): IInputs {
     );
     const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
     const verbose: boolean = core.getInput("verbose") == "true";
+    const showJobSummary: boolean = core.getInput("show_job_summary") == "true";
 
 
     return {
@@ -67,7 +69,8 @@ function inputsParser(): IInputs {
         failFast,
         failStep,
         failOnMissingChecks,
-        verbose
+        verbose,
+        showJobSummary
     };
 }
 

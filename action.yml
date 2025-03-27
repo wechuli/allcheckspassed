@@ -60,13 +60,16 @@ inputs:
     description: "If set to true, the action will log which checks are being waited on in each iteration"
     required: false
     default: "false"
+  show_job_summary:
+    description: "If set to true, the action will log a summary of the checks that were evaluated"
+    required: false
+    default: "true"
 
 outputs:
   checks:
     description: "List of checks that were evaluated"
   missing_checks:
     description: "List of checks that were not found on the commit"
-
 
 runs:
   using: node20
