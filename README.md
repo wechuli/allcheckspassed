@@ -12,12 +12,12 @@ name: All checks pass
 on:
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
-  jobs:
-    allchecks:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: wechuli/allcheckspassed@v1
 
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wechuli/allcheckspassed@v1
 ```
 
 With this default configuration, the action will fail if any of the checks on the pull request have failed or if
