@@ -64,6 +64,10 @@ inputs:
     description: "If set to true, the action will log a summary of the checks that were evaluated"
     required: false
     default: "true"
+  include_statuses:
+    description: "If set to true, the action will also check commit statuses in addition to checks"
+    required: false
+    default: "false"
 
 outputs:
   checks:
