@@ -17,6 +17,7 @@ export interface ICheck {
 }
 
 export interface IStatus {
+    id?: number;
     context: string;
     state: string;
     creator: {

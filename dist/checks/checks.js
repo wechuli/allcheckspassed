@@ -46,6 +46,8 @@ class Checks {
     filteredChecks = [];
     missingChecks = [];
     ownCheck; //the check from the workflow run itself
+    allStatuses = [];
+    filteredStatuses = []; // Map statuses to check format
     // inputs
     owner;
     repo;
@@ -62,6 +64,7 @@ class Checks {
     pollingInterval;
     verbose;
     showJobSummary;
+    includeStatuses;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -78,6 +81,7 @@ class Checks {
         this.retries = props.retries;
         this.verbose = props.verbose;
         this.showJobSummary = props.showJobSummary;
+        this.includeStatuses = props.includeStatuses;
     }
     async fetchAllChecks() {
         try {
@@ -85,6 +89,55 @@ class Checks {
         }
         catch (error) {
             throw new Error("Error getting all checks: " + error.message);
+        }
+    }
+    async fetchAllStatuses() {
+        try {
+            if (this.includeStatuses) {
+                const statuses = await (0, checksAPI_1.getAllStatusCommits)(this.owner, this.repo, this.ref);
+                this.allStatuses = statuses;
+                // Convert statuses to check format for consistent evaluation
+                this.filteredStatuses = statuses.map(status => {
+                    // Map status states to check conclusions
+                    let conclusion = null;
+                    switch (status.state) {
+                        case checksConstants_1.commitStatusState.SUCCESS:
+                            conclusion = checksConstants_1.checkConclusion.SUCCESS;
+                            break;
+                        case checksConstants_1.commitStatusState.FAILURE:
+                            conclusion = checksConstants_1.checkConclusion.FAILURE;
+                            break;
+                        case checksConstants_1.commitStatusState.ERROR:
+                            conclusion = checksConstants_1.checkConclusion.FAILURE;
+                            break;
+                        case checksConstants_1.commitStatusState.PENDING:
+                            conclusion = null;
+                            break;
+                        default:
+                            conclusion = null;
+                    }
+                    return {
+                        id: status.id || 0,
+                        name: status.context,
+                        status: status.state === checksConstants_1.commitStatusState.PENDING ? checksConstants_1.checkStatus.IN_PROGRESS : checksConstants_1.checkStatus.COMPLETED,
+                        conclusion: conclusion,
+                        started_at: status.created_at,
+                        completed_at: status.state !== checksConstants_1.commitStatusState.PENDING ? status.updated_at : null,
+                        check_suite: { id: 0 },
+                        app: {
+                            id: status.creator?.id || 0,
+                            slug: 'status',
+                            name: `Status by ${status.creator?.login || 'unknown'}`
+                        }
+                    };
+                });
+            }
+            else {
+                this.filteredStatuses = [];
+            }
+        }
+        catch (error) {
+            throw new Error("Error getting all statuses: " + error.message);
         }
     }
     async filterChecks() {
@@ -169,9 +222,22 @@ class Checks {
     }
     async iterateChecks() {
         await this.fetchAllChecks();
+        if (this.includeStatuses) {
+            await this.fetchAllStatuses();
+        }
         await this.filterChecks();
         // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
         let filteredChecksExcludingOwnCheck = this.filteredChecks.filter((check) => check.id !== this.ownCheck?.id);
+        // If statuses are included, add them to the checks to be evaluated
+        if (this.includeStatuses && this.filteredStatuses.length > 0) {
+            filteredChecksExcludingOwnCheck = [
+                ...filteredChecksExcludingOwnCheck,
+                ...this.filteredStatuses
+            ];
+            if (this.verbose) {
+                core.info(`Found ${this.filteredStatuses.length} commit statuses to evaluate`);
+            }
+        }
         let checksResult = this.evaluateChecksStatus(filteredChecksExcludingOwnCheck);
         return {
             checksResult,
@@ -234,8 +300,12 @@ class Checks {
             ];
         });
         if (this.showJobSummary) {
+            let summaryTitle = "Checks Summary";
+            if (this.includeStatuses && this.filteredStatuses.length > 0) {
+                summaryTitle = "Checks and Status Contexts Summary";
+            }
             await core.summary
-                .addHeading("Checks Summary")
+                .addHeading(summaryTitle)
                 .addTable([checkSummaryHeader, ...checkSummary])
                 .write();
         }

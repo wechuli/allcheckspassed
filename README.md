@@ -186,6 +186,19 @@ By default, the action will create a job summary with the details of each check 
           show_job_summary: false
 ```
 
+### Support for commit statuses
+
+By default, the action only checks for checks API, but some integrations still use commit statuses. You can enable support for commit statuses by setting the `include_statuses` input to true:
+
+```yaml
+    steps:
+      - uses: wechuli/allcheckspassed@v1
+        with:
+          include_statuses: true
+```
+
+When enabled, the action will check both checks and commit statuses, and will fail if any of them fail according to your configuration.
+
 
 ## Setup with environments
 
@@ -231,6 +244,6 @@ to branch protection rules as they are more flexible.
 Ultimately this is a temporary workaround for a missing feature, ensure all checks that run pass. GitHub may implement
 this as some point, at which point you will not need the action anymore.
 
-- The action is not checking for commit statuses, which uses a different API. If you need this, please open an issue.
+- The action can now optionally check for commit statuses in addition to checks. Enable this with `include_statuses: true`.
 - Unfortunately, you'll need to poll the API to get the state of the checks. The action itself is consuming GitHub
   Actions minutes doing this polling
