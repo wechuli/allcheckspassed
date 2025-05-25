@@ -24,6 +24,7 @@ export interface IInputs {
     failOnMissingChecks: boolean;
     verbose: boolean;
     showJobSummary: boolean;
+    includeStatuses: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -54,6 +55,7 @@ function inputsParser(): IInputs {
     const retries: number = validateIntervalValues(parseInt(core.getInput("retries")));
     const verbose: boolean = core.getInput("verbose") == "true";
     const showJobSummary: boolean = core.getInput("show_job_summary") == "true";
+    const includeStatuses: boolean = core.getInput("include_statuses") == "true";
 
 
     return {
@@ -70,7 +72,8 @@ function inputsParser(): IInputs {
         failStep,
         failOnMissingChecks,
         verbose,
-        showJobSummary
+        showJobSummary,
+        includeStatuses
     };
 }
 
