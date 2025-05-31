@@ -1,6 +1,9 @@
 name: Update Main Version
 run-name: Move ${{ github.event.inputs.major_version }} to ${{ github.event.inputs.target }}
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +15,6 @@ on:
         description: The major version to update
         options:
           - v1
-
 
 jobs:
   tag:
