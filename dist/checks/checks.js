@@ -54,6 +54,7 @@ class Checks {
     checksInclude;
     treatSkippedAsPassed;
     treatNeutralAsPassed;
+    treatCancelledAsPassed;
     failOnMissingChecks;
     failFast;
     failStep;
@@ -70,6 +71,7 @@ class Checks {
         this.checksInclude = props.checksInclude;
         this.treatSkippedAsPassed = props.treatSkippedAsPassed;
         this.treatNeutralAsPassed = props.treatNeutralAsPassed;
+        this.treatCancelledAsPassed = props.treatCancelledAsPassed;
         this.failFast = props.failFast;
         this.failStep = props.failStep;
         this.failOnMissingChecks = props.failOnMissingChecks;
@@ -128,13 +130,16 @@ class Checks {
         let failureConclusions = [
             checksConstants_1.checkConclusion.FAILURE,
             checksConstants_1.checkConclusion.TIMED_OUT,
-            checksConstants_1.checkConclusion.CANCELLED,
             checksConstants_1.checkConclusion.ACTION_REQUIRED,
             checksConstants_1.checkConclusion.STALE,
         ];
         // if the user wanted us to treat skipped as a failure, then we will add it to the failureConclusions array
         if (!this.treatSkippedAsPassed) {
             failureConclusions.push(checksConstants_1.checkConclusion.SKIPPED);
+        }
+        // if the user wanted us to treat cancelled as a failure, then we will add it to the failureConclusions array
+        if (!this.treatCancelledAsPassed) {
+            failureConclusions.push(checksConstants_1.checkConclusion.CANCELLED);
         }
         // if the user wanted us to treat neutral as a failure, then we will add it to the failureConclusions array
         if (!this.treatNeutralAsPassed) {

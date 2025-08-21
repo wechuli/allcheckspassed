@@ -15,6 +15,7 @@ export interface IInputs {
     checksExclude: ICheckInput [];
     treatSkippedAsPassed: boolean;
     treatNeutralAsPassed: boolean;
+    treatCancelledAsPassed: boolean;
     poll: boolean;
     delay: number;
     pollingInterval: number;
@@ -41,6 +42,8 @@ function inputsParser(): IInputs {
     const treatSkippedAsPassed: boolean =
         core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed: boolean = core.getInput("treat_neutral_as_passed") == "true";
+    const treatCancelledAsPassed: boolean =
+        core.getInput("treat_cancelled_as_passed") == "true";
     const failFast: boolean = core.getInput("fail_fast") == "true";
     const failStep: boolean = core.getInput("fail_step") == "true";
     const failOnMissingChecks: boolean = core.getInput("fail_on_missing_checks") == "true";
@@ -62,6 +65,7 @@ function inputsParser(): IInputs {
         checksExclude,
         treatSkippedAsPassed,
         treatNeutralAsPassed,
+        treatCancelledAsPassed,
         poll,
         delay,
         pollingInterval,

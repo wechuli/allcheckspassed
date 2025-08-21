@@ -53,6 +53,7 @@ function inputsParser() {
     const checksExclude = (0, checksFilters_1.removeDuplicateEntriesChecksInputsFromSelf)(parseChecksArray(core.getInput("checks_exclude"), "checks_exclude"));
     const treatSkippedAsPassed = core.getInput("treat_skipped_as_passed") == "true";
     const treatNeutralAsPassed = core.getInput("treat_neutral_as_passed") == "true";
+    const treatCancelledAsPassed = core.getInput("treat_cancelled_as_passed") == "true";
     const failFast = core.getInput("fail_fast") == "true";
     const failStep = core.getInput("fail_step") == "true";
     const failOnMissingChecks = core.getInput("fail_on_missing_checks") == "true";
@@ -68,6 +69,7 @@ function inputsParser() {
         checksExclude,
         treatSkippedAsPassed,
         treatNeutralAsPassed,
+        treatCancelledAsPassed,
         poll,
         delay,
         pollingInterval,

@@ -32,6 +32,7 @@ describe('Checks', () => {
     checksInclude: [] as ICheckInput[],
     treatSkippedAsPassed: true,
     treatNeutralAsPassed: true,
+    treatCancelledAsPassed: false,
     failFast: true,
     failStep: true,
     failOnMissingChecks: false,
@@ -93,6 +94,16 @@ describe('Checks', () => {
       completed_at: '2022-01-01T00:01:00Z',
       check_suite: { id: 105 },
       app: { id: 1005, slug: 'another-app', name: 'Another App' }
+    },
+    {
+      id: 6,
+      name: 'test-check-6',
+      status: checkStatus.COMPLETED,
+      conclusion: checkConclusion.CANCELLED,
+      started_at: '2022-01-01T00:00:00Z',
+      completed_at: '2022-01-01T00:01:00Z',
+      check_suite: { id: 106 },
+      app: { id: 1006, slug: 'some-app', name: 'Some App' }
     }
   ];
 
@@ -243,7 +254,7 @@ describe('Checks', () => {
       await checks.fetchAllChecks();
       await checks.filterChecks();
       
-      expect(checks['filteredChecks']).toHaveLength(4);
+      expect(checks['filteredChecks']).toHaveLength(5);
       expect(checks['filteredChecks'].some(check => check.name === 'test-check-1')).toBeFalsy();
     });
 
@@ -321,6 +332,18 @@ describe('Checks', () => {
       const checksWithSkippedAsFailed = new Checks({ ...defaultProps, treatSkippedAsPassed: false });
       const resultWithSkippedAsFailed = checksWithSkippedAsFailed.evaluateChecksStatus([mockChecks[3]]); // SKIPPED check
       expect(resultWithSkippedAsFailed).toEqual({ in_progress: false, passed: false });
+    });
+
+    it('should handle treatCancelledAsPassed option', () => {
+      // When treatCancelledAsPassed is true
+      const checksWithCancelledAsPassed = new Checks({ ...defaultProps, treatCancelledAsPassed: true });
+      const resultWithCancelledAsPassed = checksWithCancelledAsPassed.evaluateChecksStatus([mockChecks[5]]); // CANCELLED check
+      expect(resultWithCancelledAsPassed).toEqual({ in_progress: false, passed: true });
+
+      // When treatCancelledAsPassed is false
+      const checksWithCancelledAsFailed = new Checks({ ...defaultProps, treatCancelledAsPassed: false });
+      const resultWithCancelledAsFailed = checksWithCancelledAsFailed.evaluateChecksStatus([mockChecks[5]]); // CANCELLED check
+      expect(resultWithCancelledAsFailed).toEqual({ in_progress: false, passed: false });
     });
 
     it('should handle treatNeutralAsPassed option', () => {

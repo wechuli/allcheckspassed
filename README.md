@@ -92,7 +92,7 @@ repository rulesets or branch protection rules. You can't provide both the `chec
 ### What should be considered as passing
 
 At the moment, checks with `success`, `neutral` and `skipped` are considered passing by GitHub. This action will
-default to this behavior as well but you can change this if you want to.
+default to this behavior as well but you can change this if you want to:
 
 ```yaml
 steps:
@@ -100,9 +100,10 @@ steps:
     with:
       treat_skipped_as_passed: false
       treat_neutral_as_passed: false
+      treat_cancelled_as_passed: true
 ```
 
-In the above configuration, the action will fail if any of the checks are skipped or neutral.
+In the above configuration, the action will fail if any of the checks are skipped or neutral, but cancelled checks will be treated as passed.
 
 ### Missing checks
 

@@ -28,6 +28,10 @@ inputs:
     description: "If set to true, neutral checks will be treated as passed"
     required: false
     default: "true"
+  treat_cancelled_as_passed:
+    description: "If set to true, cancelled checks will be treated as passed"
+    required: false
+    default: "false"
   poll:
     description: "Whether to poll the API for completed checks or to simply check once and exit"
     required: false
