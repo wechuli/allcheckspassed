@@ -72,5 +72,5 @@ outputs:
     description: "List of checks that were not found on the commit"
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
