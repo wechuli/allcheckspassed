@@ -37,7 +37,7 @@ const core = __importStar(require("@actions/core"));
 const checksAPI_1 = require("./checksAPI");
 const checksFilters_1 = require("./checksFilters");
 const timeFuncs_1 = require("../utils/timeFuncs");
-const fileExtractor_1 = require("../utils/fileExtractor");
+const checkNameExtractor_1 = require("../utils/checkNameExtractor");
 const checksConstants_1 = require("./checksConstants");
 const checkEmoji_1 = require("./checkEmoji");
 class Checks {
@@ -90,7 +90,7 @@ class Checks {
     async filterChecks() {
         // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
-            let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
+            let ownCheckName = await (0, checkNameExtractor_1.extractOwnCheckNameFromWorkflow)();
             this.ownCheck = this.allChecks.find((check) => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
             if (!this.ownCheck) {
                 core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);

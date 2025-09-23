@@ -62,6 +62,7 @@ function inputsParser() {
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     const verbose = core.getInput("verbose") == "true";
     const showJobSummary = core.getInput("show_job_summary") == "true";
+    const checkRunId = parseInt(core.getInput("check_run_id")) || undefined;
     return {
         commitSHA,
         checksInclude,
@@ -76,7 +77,8 @@ function inputsParser() {
         failStep,
         failOnMissingChecks,
         verbose,
-        showJobSummary
+        showJobSummary,
+        checkRunId,
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
@@ -95,12 +97,12 @@ function parseChecksArray(input, inputType = "checks_include") {
         }
         else {
             // Split by commas.
-            checks = trimmedInput.split(',').map(element => {
+            checks = trimmedInput.split(",").map((element) => {
                 return { name: element.trim(), app_id: -1 };
             });
         }
         // Remove checks with no filtering ability
-        checks = checks.filter((c) => c.app_id !== -1 || c.name !== '');
+        checks = checks.filter((c) => c.app_id !== -1 || c.name !== "");
         if (!validateCheckInputs(checks)) {
             throw new Error();
         }
@@ -111,7 +113,7 @@ function parseChecksArray(input, inputType = "checks_include") {
     }
 }
 function isValidCheckInput(object) {
-    return typeof object.name === 'string' && typeof object.app_id === 'number';
+    return typeof object.name === "string" && typeof object.app_id === "number";
 }
 function validateCheckInputs(array) {
     return array.every(isValidCheckInput);

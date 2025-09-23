@@ -32547,7 +32547,7 @@ const core = __importStar(__nccwpck_require__(7484));
 const checksAPI_1 = __nccwpck_require__(3638);
 const checksFilters_1 = __nccwpck_require__(6421);
 const timeFuncs_1 = __nccwpck_require__(8353);
-const fileExtractor_1 = __nccwpck_require__(9603);
+const checkNameExtractor_1 = __nccwpck_require__(6092);
 const checksConstants_1 = __nccwpck_require__(1763);
 const checkEmoji_1 = __nccwpck_require__(5331);
 class Checks {
@@ -32600,7 +32600,7 @@ class Checks {
     async filterChecks() {
         // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
-            let ownCheckName = await (0, fileExtractor_1.extractOwnCheckNameFromWorkflow)();
+            let ownCheckName = await (0, checkNameExtractor_1.extractOwnCheckNameFromWorkflow)();
             this.ownCheck = this.allChecks.find((check) => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
             if (!this.ownCheck) {
                 core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);
@@ -33112,7 +33112,7 @@ async function run() {
 
 /***/ }),
 
-/***/ 9603:
+/***/ 6092:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -33176,21 +33176,47 @@ async function getFile(owner, repo, path, ref) {
             owner,
             repo,
             path,
-            ref
+            ref,
         });
         // parse the yaml file to json
-        let fileContent = Buffer.from(file.data.content, 'base64').toString();
+        let fileContent = Buffer.from(file.data.content, "base64").toString();
         return yaml_1.default.parse(fileContent);
     }
     catch (error) {
         throw new Error("Error getting file: " + error.message);
     }
 }
-async function extractOwnCheckNameFromWorkflow(owner = github.context.repo.owner, repo = github.context.repo.repo, path = extractFilePath(), ref = inputsExtractor_1.sanitizedInputs.commitSHA) {
-    let jobName = process.env.GITHUB_JOB;
+async function getCheckNameFromCheckRunId(owner, repo, checkRunId) {
     try {
-        let workflow = await getFile(owner, repo, path, ref);
-        let checkName = workflow.jobs[jobName].name || jobName;
+        let checkRun = await octokit_1.restClient.checks.get({
+            owner,
+            repo,
+            check_run_id: checkRunId,
+        });
+        return checkRun.data.name;
+    }
+    catch (error) {
+        throw new Error("Error getting check run: " + error.message);
+    }
+}
+async function extractOwnCheckNameFromWorkflow() {
+    const owner = github.context.repo.owner;
+    const repo = github.context.repo.repo;
+    const path = extractFilePath();
+    const ref = inputsExtractor_1.sanitizedInputs.commitSHA;
+    const jobName = process.env.GITHUB_JOB;
+    const checkRunId = inputsExtractor_1.sanitizedInputs.checkRunId;
+    try {
+        let checkName;
+        if (checkRunId) {
+            checkName = await getCheckNameFromCheckRunId(owner, repo, checkRunId);
+            core.debug(`Extracted check name from check run id: ${checkName}`);
+        }
+        else {
+            let workflow = await getFile(owner, repo, path, ref);
+            checkName = workflow.jobs[jobName].name || jobName;
+            core.debug(`Extracted check name from workflow file: ${checkName}`);
+        }
         return checkName;
     }
     catch (error) {
@@ -33271,6 +33297,7 @@ function inputsParser() {
     const retries = (0, validators_1.validateIntervalValues)(parseInt(core.getInput("retries")));
     const verbose = core.getInput("verbose") == "true";
     const showJobSummary = core.getInput("show_job_summary") == "true";
+    const checkRunId = parseInt(core.getInput("check_run_id")) || undefined;
     return {
         commitSHA,
         checksInclude,
@@ -33285,7 +33312,8 @@ function inputsParser() {
         failStep,
         failOnMissingChecks,
         verbose,
-        showJobSummary
+        showJobSummary,
+        checkRunId,
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {
@@ -33304,12 +33332,12 @@ function parseChecksArray(input, inputType = "checks_include") {
         }
         else {
             // Split by commas.
-            checks = trimmedInput.split(',').map(element => {
+            checks = trimmedInput.split(",").map((element) => {
                 return { name: element.trim(), app_id: -1 };
             });
         }
         // Remove checks with no filtering ability
-        checks = checks.filter((c) => c.app_id !== -1 || c.name !== '');
+        checks = checks.filter((c) => c.app_id !== -1 || c.name !== "");
         if (!validateCheckInputs(checks)) {
             throw new Error();
         }
@@ -33320,7 +33348,7 @@ function parseChecksArray(input, inputType = "checks_include") {
     }
 }
 function isValidCheckInput(object) {
-    return typeof object.name === 'string' && typeof object.app_id === 'number';
+    return typeof object.name === "string" && typeof object.app_id === "number";
 }
 function validateCheckInputs(array) {
     return array.every(isValidCheckInput);
