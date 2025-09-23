@@ -1,5 +1,12 @@
 # All checks pass action
 
+## V2
+
+### What's Changed
+
+- Upgrade to Node24 runtime
+- On GitHub.com, the name of the check run created by the workflow itself is extracted from the available `job.check_run_id` context using this action as a reusable is now supported
+
 This action will check that all checks have passed on a given pull request.
 
 ## Basic usage
@@ -17,7 +24,7 @@ jobs:
   allchecks:
     runs-on: ubuntu-latest
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
 ```
 
 With this default configuration, the action will fail if any of the checks on the pull request have failed or if
@@ -58,7 +65,7 @@ separated string of values:
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           checks_exclude: 'CodeQL,lint,cosmetic'
 ```
@@ -71,7 +78,7 @@ checks have the word `lint` somewhere in the string, you don't have to list them
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           checks_exclude: '.*lint.*'
 ```
@@ -84,7 +91,7 @@ repository rulesets or branch protection rules. You can't provide both the `chec
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           checks_include: 'CodeQL'
 ```
@@ -96,7 +103,7 @@ default to this behavior as well but you can change this if you want to.
 
 ```yaml
 steps:
-  - uses: wechuli/allcheckspassed@v1
+  - uses: wechuli/allcheckspassed@v2
     with:
       treat_skipped_as_passed: false
       treat_neutral_as_passed: false
@@ -111,7 +118,7 @@ are missing. You can choose instead to fail the action if any of the checks are 
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           fail_on_missing_checks: true
 ```
@@ -124,7 +131,7 @@ between each poll of 1 minute (default). You can change these values to your lik
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           delay: '5'
           retries: '3'
@@ -139,7 +146,7 @@ You also don't have to poll, you can just run the action once and get the result
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           poll: false
 
@@ -156,7 +163,7 @@ for all checks to complete before reporting a failure, you can set the fail_fast
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           fail_fast: false
 
@@ -170,7 +177,7 @@ what checks are matched by `checks_include` or `checks_exclude`.
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           verbose: true
 ```
@@ -181,7 +188,7 @@ By default, the action will create a job summary with the details of each check 
 
 ```yaml
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           show_job_summary: false
 ```
@@ -205,7 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: delayenv
     steps:
-      - uses: wechuli/allcheckspassed@v1
+      - uses: wechuli/allcheckspassed@v2
         with:
           poll: false
 ```
