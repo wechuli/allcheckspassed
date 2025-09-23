@@ -64,6 +64,10 @@ inputs:
     description: "If set to true, the action will log a summary of the checks that were evaluated"
     required: false
     default: "true"
+  check_run_id:
+    description: "This is the check run id of the current job, there is no need to set this, the action will automatically set it for you. This is used to exclude the current job from the evaluation"
+    required: false
+    default: "${{ job.check_run_id }}"
 
 outputs:
   checks:
