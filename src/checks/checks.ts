@@ -15,7 +15,7 @@ import {
   takeMostRecentChecksForMatchingNameAndAppId,
 } from "./checksFilters";
 import { sleep } from "../utils/timeFuncs";
-import { extractOwnCheckNameFromWorkflow } from "../utils/fileExtractor";
+import { extractOwnCheckNameFromWorkflow } from "../utils/checkNameExtractor";
 import {
   checkConclusion,
   checkStatus,
