@@ -25,6 +25,7 @@ export interface IInputs {
   verbose: boolean;
   showJobSummary: boolean;
   checkRunId?: number | undefined;
+  includeStatusCommits: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -67,6 +68,8 @@ function inputsParser(): IInputs {
   const showJobSummary: boolean = core.getInput("show_job_summary") == "true";
   const checkRunId: number | undefined =
     parseInt(core.getInput("check_run_id")) || undefined;
+  const includeStatusCommits: boolean =
+    core.getInput("include_status_commits") == "true";
 
   return {
     commitSHA,
@@ -84,6 +87,7 @@ function inputsParser(): IInputs {
     verbose,
     showJobSummary,
     checkRunId,
+    includeStatusCommits,
   };
 }
 
