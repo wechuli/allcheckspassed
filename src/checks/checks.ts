@@ -18,8 +18,8 @@ import { sleep } from "../utils/timeFuncs";
 import { extractOwnCheckNameFromWorkflow } from "../utils/checkNameExtractor";
 import {
   checkConclusion,
-  checkStatus,
   GitHubActionsBotSlug,
+  checkStatus,
 } from "./checksConstants";
 import { addCheckConclusionEmoji } from "./checkEmoji";
 
