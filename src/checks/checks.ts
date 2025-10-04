@@ -3,6 +3,7 @@ import { IInputs } from "../utils/inputsExtractor";
 import { getAllChecks } from "./checksAPI";
 import { getAllStatusCommits } from "../statuses/statusesAPI";
 import { mapStatusesToChecksModel } from "../statuses/statuses";
+import { addCommitStatusEmoji } from "../statuses/statusesConstants";
 import {
   ICheckInput,
   ICheck,
@@ -295,6 +296,15 @@ export default class Checks {
       { data: "app.id", header: true },
     ];
 
+    let commitStatusesSummaryHeader = [
+      { data: "context", header: true },
+      { data: "state", header: true },
+      { data: "created_at", header: true },
+      { data: "updated_at", header: true },
+      { data: "creator.login", header: true },
+      { data: "creator.id", header: true },
+    ];
+
     // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
 
     let checksOnly = filteredChecksExcludingOwnCheck.filter(
@@ -316,11 +326,29 @@ export default class Checks {
       ];
     });
 
+    let commitStatusesSummary: any[] = commitStatusesOnly.map((check) => {
+      return [
+        check.commit_status?.context,
+        addCommitStatusEmoji(check.commit_status?.state as string),
+        check.commit_status?.created_at,
+        check.commit_status?.updated_at,
+        check.commit_status?.creator.login,
+        check.commit_status?.creator.id.toString(),
+      ];
+    });
+
     if (this.showJobSummary) {
       await core.summary
         .addHeading("Checks Summary")
         .addTable([checkSummaryHeader, ...checkSummary])
         .write();
+
+      if (this.includeStatusCommits && commitStatusesSummary.length > 0) {
+        await core.summary
+          .addHeading("Commit Statuses Summary")
+          .addTable([commitStatusesSummaryHeader, ...commitStatusesSummary])
+          .write();
+      }
     }
 
     // create an output with details of the checks evaluated
