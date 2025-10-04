@@ -1,6 +1,4 @@
-import {
-  getMostRecentStatusPerContextAndCreator,
-} from "../../src/statuses/statusesFilters";
+import { getMostRecentStatusPerContextAndCreator } from "../../src/statuses/statusesFilters";
 import { IStatus } from "../../src/statuses/statusesInterfaces";
 
 describe("statusesFilters", () => {
@@ -134,8 +132,10 @@ describe("statusesFilters", () => {
     });
 
     it("should preserve all status properties", () => {
-      const result = getMostRecentStatusPerContextAndCreator([sampleStatuses[0]]);
-      
+      const result = getMostRecentStatusPerContextAndCreator([
+        sampleStatuses[0],
+      ]);
+
       expect(result[0]).toEqual(sampleStatuses[0]);
       expect(result[0].id).toBe(sampleStatuses[0].id);
       expect(result[0].context).toBe(sampleStatuses[0].context);
@@ -182,7 +182,7 @@ describe("statusesFilters", () => {
       ];
 
       const result = getMostRecentStatusPerContextAndCreator(statuses);
-      
+
       // Should have 4 unique combinations: (ci/test, user1), (ci/test, user2), (ci/build, user1), (ci/build, user2)
       expect(result).toHaveLength(4);
     });
@@ -216,7 +216,7 @@ describe("statusesFilters", () => {
       ];
 
       const result = getMostRecentStatusPerContextAndCreator(statuses);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(110); // Should pick the highest ID
       expect(result[0].state).toBe("failure");
