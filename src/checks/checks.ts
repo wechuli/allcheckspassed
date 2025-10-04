@@ -79,6 +79,7 @@ export default class Checks {
     try {
       let checks = await getAllChecks(this.owner, this.repo, this.ref);
 
+      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
       if (this.includeStatusCommits) {
         let statusCommits = await getAllStatusCommits(
           this.owner,
@@ -91,8 +92,6 @@ export default class Checks {
         checks = checks.concat(statusChecksAsCommits);
       }
       this.allChecks = checks;
-
-      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
     } catch (error: any) {
       throw new Error("Error getting all checks: " + error.message);
     }
@@ -296,7 +295,16 @@ export default class Checks {
       { data: "app.id", header: true },
     ];
 
-    let checkSummary: any[] = filteredChecksExcludingOwnCheck.map((check) => {
+    // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
+
+    let checksOnly = filteredChecksExcludingOwnCheck.filter(
+      (check) => check.commit_status === undefined
+    );
+    let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter(
+      (check) => check.commit_status !== undefined
+    );
+
+    let checkSummary: any[] = checksOnly.map((check) => {
       return [
         check.name,
         check.status,
