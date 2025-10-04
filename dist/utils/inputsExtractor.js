@@ -63,6 +63,7 @@ function inputsParser() {
     const verbose = core.getInput("verbose") == "true";
     const showJobSummary = core.getInput("show_job_summary") == "true";
     const checkRunId = parseInt(core.getInput("check_run_id")) || undefined;
+    const includeStatusCommits = core.getInput("include_status_commits") == "true";
     return {
         commitSHA,
         checksInclude,
@@ -79,6 +80,7 @@ function inputsParser() {
         verbose,
         showJobSummary,
         checkRunId,
+        includeStatusCommits,
     };
 }
 function parseChecksArray(input, inputType = "checks_include") {

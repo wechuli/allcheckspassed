@@ -25,7 +25,7 @@ import {
   checkStatus,
 } from "./checksConstants";
 import { addCheckConclusionEmoji } from "./checkEmoji";
-import { getMostRecentStatusPerContextAndCreator } from "src/statuses/statusesFilters";
+import { getMostRecentStatusPerContextAndCreator } from "../statuses/statusesFilters";
 
 interface IRepo {
   owner: string;
