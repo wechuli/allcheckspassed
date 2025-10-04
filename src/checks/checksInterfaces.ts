@@ -1,3 +1,5 @@
+import { IStatus } from "src/statuses/statusesInterfaces";
+
 export interface ICheck {
   id: number;
   name: string;
@@ -13,6 +15,7 @@ export interface ICheck {
     slug: string;
     name: string;
   };
+  commit_status?: IStatus;
 }
 export interface ICheckInput {
   name: string;

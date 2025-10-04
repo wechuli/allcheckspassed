@@ -1,6 +1,8 @@
 import * as core from "@actions/core";
 import { IInputs } from "../utils/inputsExtractor";
 import { getAllChecks } from "./checksAPI";
+import { getAllStatusCommits } from "../statuses/statusesAPI";
+import { mapStatusesToChecksModel } from "../statuses/statuses";
 import {
   ICheckInput,
   ICheck,
@@ -22,6 +24,7 @@ import {
   checkStatus,
 } from "./checksConstants";
 import { addCheckConclusionEmoji } from "./checkEmoji";
+import { getMostRecentStatusPerContextAndCreator } from "src/statuses/statusesFilters";
 
 interface IRepo {
   owner: string;
@@ -51,6 +54,7 @@ export default class Checks {
   private pollingInterval: number;
   private verbose: boolean;
   private showJobSummary: boolean;
+  private includeStatusCommits: boolean;
 
   constructor(props: IRepo & IInputs) {
     this.owner = props.owner;
@@ -68,15 +72,27 @@ export default class Checks {
     this.retries = props.retries;
     this.verbose = props.verbose;
     this.showJobSummary = props.showJobSummary;
+    this.includeStatusCommits = props.includeStatusCommits;
   }
 
   async fetchAllChecks() {
     try {
-      this.allChecks = (await getAllChecks(
-        this.owner,
-        this.repo,
-        this.ref
-      )) as ICheck[];
+      let checks = await getAllChecks(this.owner, this.repo, this.ref);
+
+      if (this.includeStatusCommits) {
+        let statusCommits = await getAllStatusCommits(
+          this.owner,
+          this.repo,
+          this.ref
+        );
+        let statusChecksAsCommits = mapStatusesToChecksModel(
+          getMostRecentStatusPerContextAndCreator(statusCommits)
+        );
+        checks = checks.concat(statusChecksAsCommits);
+      }
+      this.allChecks = checks;
+
+      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
     } catch (error: any) {
       throw new Error("Error getting all checks: " + error.message);
     }
