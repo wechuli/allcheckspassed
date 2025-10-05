@@ -74,9 +74,12 @@ describe("action", () => {
 
     // Mock Checks class
     ChecksRunMock = jest.fn().mockResolvedValue(undefined);
-    (Checks as jest.MockedClass<typeof Checks>).mockImplementation(() => ({
-      run: ChecksRunMock,
-    } as any));
+    (Checks as jest.MockedClass<typeof Checks>).mockImplementation(
+      () =>
+        ({
+          run: ChecksRunMock,
+        } as any)
+    );
   });
 
   it("should run successfully with default inputs", async () => {
@@ -100,7 +103,7 @@ describe("action", () => {
     await main.run();
 
     expect(sleepMock).toHaveBeenCalledWith(2 * 1000 * 60); // 2 minutes in ms
-    
+
     // Reset for other tests
     mockSanitizedInputs.delay = 0;
   });
@@ -167,11 +170,11 @@ describe("action", () => {
       owner: "testOwner",
       repo: "testRepo",
     });
-    
+
     // Reset for other tests
     mockSanitizedInputs.poll = false;
     mockSanitizedInputs.verbose = false;
     mockSanitizedInputs.failFast = true;
     mockSanitizedInputs.retries = 3;
   });
-})
+});

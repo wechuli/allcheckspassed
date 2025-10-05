@@ -75,9 +75,9 @@ describe("timeFuncs", () => {
 
       jest.advanceTimersByTime(1500);
 
-      await expect(Promise.all([promise1, promise2, promise3])).resolves.toEqual(
-        [undefined, undefined, undefined]
-      );
+      await expect(
+        Promise.all([promise1, promise2, promise3])
+      ).resolves.toEqual([undefined, undefined, undefined]);
     });
 
     it("should resolve in the correct order for different durations", async () => {
@@ -89,7 +89,7 @@ describe("timeFuncs", () => {
 
       // Run all timers to completion
       jest.runAllTimers();
-      
+
       await Promise.all([promise1, promise2, promise3]);
 
       expect(results).toEqual([1, 2, 3]);
