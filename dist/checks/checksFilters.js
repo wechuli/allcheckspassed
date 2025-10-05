@@ -39,7 +39,7 @@ function returnChecksWithMatchingNameAndAppId(checks, name, appId) {
 function filterChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let missingChecks = [];
     let filteredChecksRaw = [];
-    checksInputs.forEach(checkInput => {
+    checksInputs.forEach((checkInput) => {
         const checksWithNameAndAppId = returnChecksWithMatchingNameAndAppId(checks, checkInput.name, checkInput.app_id);
         if (checksWithNameAndAppId === null) {
             missingChecks.push(checkInput);
@@ -58,10 +58,12 @@ function takeMostRecentChecksForMatchingNameAndAppId(checks) {
     getUniqueAppId.forEach((appId) => {
         const checksWithMatchingAppId = checks.filter((check) => check.app.id === appId);
         // we may have used regular expressions to get here, so we need to make sure that the checks we are comparing are actually the same
-        const getUniqueCheckName = [...new Set(checksWithMatchingAppId.map((check) => check.name))];
+        const getUniqueCheckName = [
+            ...new Set(checksWithMatchingAppId.map((check) => check.name)),
+        ];
         getUniqueCheckName.forEach((checkName) => {
             const checksWithMatchingName = checksWithMatchingAppId.filter((check) => check.name === checkName);
-            const mostRecentCheck = checksWithMatchingName.reduce((prev, current) => (prev.id > current.id) ? prev : current);
+            const mostRecentCheck = checksWithMatchingName.reduce((prev, current) => prev.id > current.id ? prev : current);
             mostRecentChecks.push(mostRecentCheck);
         });
     });
@@ -69,8 +71,8 @@ function takeMostRecentChecksForMatchingNameAndAppId(checks) {
 }
 function removeChecksWithMatchingNameAndAppId(checks, checksInputs) {
     let newChecks = [...checks];
-    newChecks.forEach(check => {
-        checksInputs.forEach(checkInput => {
+    newChecks.forEach((check) => {
+        checksInputs.forEach((checkInput) => {
             const regex = new RegExp(checkInput.name);
             if (checkInput.app_id === -1) {
                 if (regex.test(check.name)) {
@@ -95,7 +97,8 @@ function checkOneOfTheChecksInputIsEmpty(checksInputs1, checksInputs2) {
 function removeDuplicateEntriesChecksInputsFromSelf(checksInputs) {
     let uniqueCheckInputs = [];
     checksInputs.forEach((checkInput) => {
-        const checkInputAlreadyExists = uniqueCheckInputs.some((uniqueCheckInput) => uniqueCheckInput.name === checkInput.name && uniqueCheckInput.app_id === checkInput.app_id);
+        const checkInputAlreadyExists = uniqueCheckInputs.some((uniqueCheckInput) => uniqueCheckInput.name === checkInput.name &&
+            uniqueCheckInput.app_id === checkInput.app_id);
         if (!checkInputAlreadyExists) {
             uniqueCheckInputs.push(checkInput);
         }

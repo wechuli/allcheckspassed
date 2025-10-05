@@ -35,11 +35,15 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(require("@actions/core"));
 const checksAPI_1 = require("./checksAPI");
+const statusesAPI_1 = require("../statuses/statusesAPI");
+const statuses_1 = require("../statuses/statuses");
+const statusesConstants_1 = require("../statuses/statusesConstants");
 const checksFilters_1 = require("./checksFilters");
 const timeFuncs_1 = require("../utils/timeFuncs");
 const checkNameExtractor_1 = require("../utils/checkNameExtractor");
 const checksConstants_1 = require("./checksConstants");
 const checkEmoji_1 = require("./checkEmoji");
+const statusesFilters_1 = require("../statuses/statusesFilters");
 class Checks {
     // data
     allChecks = [];
@@ -62,6 +66,7 @@ class Checks {
     pollingInterval;
     verbose;
     showJobSummary;
+    includeStatusCommits;
     constructor(props) {
         this.owner = props.owner;
         this.repo = props.repo;
@@ -78,10 +83,18 @@ class Checks {
         this.retries = props.retries;
         this.verbose = props.verbose;
         this.showJobSummary = props.showJobSummary;
+        this.includeStatusCommits = props.includeStatusCommits;
     }
     async fetchAllChecks() {
         try {
-            this.allChecks = (await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref));
+            let checks = await (0, checksAPI_1.getAllChecks)(this.owner, this.repo, this.ref);
+            // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
+            if (this.includeStatusCommits) {
+                let statusCommits = await (0, statusesAPI_1.getAllStatusCommits)(this.owner, this.repo, this.ref);
+                let statusChecksAsCommits = (0, statuses_1.mapStatusesToChecksModel)((0, statusesFilters_1.getMostRecentStatusPerContextAndCreator)(statusCommits));
+                checks = checks.concat(statusChecksAsCommits);
+            }
+            this.allChecks = checks;
         }
         catch (error) {
             throw new Error("Error getting all checks: " + error.message);
@@ -222,7 +235,18 @@ class Checks {
             },
             { data: "app.id", header: true },
         ];
-        let checkSummary = filteredChecksExcludingOwnCheck.map((check) => {
+        let commitStatusesSummaryHeader = [
+            { data: "context", header: true },
+            { data: "state", header: true },
+            { data: "created_at", header: true },
+            { data: "updated_at", header: true },
+            { data: "creator.login", header: true },
+            { data: "creator.id", header: true },
+        ];
+        // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
+        let checksOnly = filteredChecksExcludingOwnCheck.filter((check) => check.commit_status === undefined);
+        let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter((check) => check.commit_status !== undefined);
+        let checkSummary = checksOnly.map((check) => {
             return [
                 check.name,
                 check.status,
@@ -233,11 +257,27 @@ class Checks {
                 check.app.id.toString(),
             ];
         });
+        let commitStatusesSummary = commitStatusesOnly.map((check) => {
+            return [
+                check.commit_status?.context,
+                (0, statusesConstants_1.addCommitStatusEmoji)(check.commit_status?.state),
+                check.commit_status?.created_at,
+                check.commit_status?.updated_at,
+                check.commit_status?.creator.login,
+                check.commit_status?.creator.id.toString(),
+            ];
+        });
         if (this.showJobSummary) {
             await core.summary
                 .addHeading("Checks Summary")
                 .addTable([checkSummaryHeader, ...checkSummary])
                 .write();
+            if (this.includeStatusCommits && commitStatusesSummary.length > 0) {
+                await core.summary
+                    .addHeading("Commit Statuses Summary")
+                    .addTable([commitStatusesSummaryHeader, ...commitStatusesSummary])
+                    .write();
+            }
         }
         // create an output with details of the checks evaluated
         // core.setOutput("checks", JSON.stringify(filteredChecksExcludingOwnCheck)); // revisit why this is not working

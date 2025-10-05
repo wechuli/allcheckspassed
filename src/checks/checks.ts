@@ -1,6 +1,9 @@
 import * as core from "@actions/core";
 import { IInputs } from "../utils/inputsExtractor";
 import { getAllChecks } from "./checksAPI";
+import { getAllStatusCommits } from "../statuses/statusesAPI";
+import { mapStatusesToChecksModel } from "../statuses/statuses";
+import { addCommitStatusEmoji } from "../statuses/statusesConstants";
 import {
   ICheckInput,
   ICheck,
@@ -18,10 +21,11 @@ import { sleep } from "../utils/timeFuncs";
 import { extractOwnCheckNameFromWorkflow } from "../utils/checkNameExtractor";
 import {
   checkConclusion,
-  checkStatus,
   GitHubActionsBotSlug,
+  checkStatus,
 } from "./checksConstants";
 import { addCheckConclusionEmoji } from "./checkEmoji";
+import { getMostRecentStatusPerContextAndCreator } from "../statuses/statusesFilters";
 
 interface IRepo {
   owner: string;
@@ -51,6 +55,7 @@ export default class Checks {
   private pollingInterval: number;
   private verbose: boolean;
   private showJobSummary: boolean;
+  private includeStatusCommits: boolean;
 
   constructor(props: IRepo & IInputs) {
     this.owner = props.owner;
@@ -68,15 +73,26 @@ export default class Checks {
     this.retries = props.retries;
     this.verbose = props.verbose;
     this.showJobSummary = props.showJobSummary;
+    this.includeStatusCommits = props.includeStatusCommits;
   }
 
   async fetchAllChecks() {
     try {
-      this.allChecks = (await getAllChecks(
-        this.owner,
-        this.repo,
-        this.ref
-      )) as ICheck[];
+      let checks = await getAllChecks(this.owner, this.repo, this.ref);
+
+      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
+      if (this.includeStatusCommits) {
+        let statusCommits = await getAllStatusCommits(
+          this.owner,
+          this.repo,
+          this.ref
+        );
+        let statusChecksAsCommits = mapStatusesToChecksModel(
+          getMostRecentStatusPerContextAndCreator(statusCommits)
+        );
+        checks = checks.concat(statusChecksAsCommits);
+      }
+      this.allChecks = checks;
     } catch (error: any) {
       throw new Error("Error getting all checks: " + error.message);
     }
@@ -280,7 +296,25 @@ export default class Checks {
       { data: "app.id", header: true },
     ];
 
-    let checkSummary: any[] = filteredChecksExcludingOwnCheck.map((check) => {
+    let commitStatusesSummaryHeader = [
+      { data: "context", header: true },
+      { data: "state", header: true },
+      { data: "created_at", header: true },
+      { data: "updated_at", header: true },
+      { data: "creator.login", header: true },
+      { data: "creator.id", header: true },
+    ];
+
+    // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
+
+    let checksOnly = filteredChecksExcludingOwnCheck.filter(
+      (check) => check.commit_status === undefined
+    );
+    let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter(
+      (check) => check.commit_status !== undefined
+    );
+
+    let checkSummary: any[] = checksOnly.map((check) => {
       return [
         check.name,
         check.status,
@@ -292,11 +326,29 @@ export default class Checks {
       ];
     });
 
+    let commitStatusesSummary: any[] = commitStatusesOnly.map((check) => {
+      return [
+        check.commit_status?.context,
+        addCommitStatusEmoji(check.commit_status?.state as string),
+        check.commit_status?.created_at,
+        check.commit_status?.updated_at,
+        check.commit_status?.creator.login,
+        check.commit_status?.creator.id.toString(),
+      ];
+    });
+
     if (this.showJobSummary) {
       await core.summary
         .addHeading("Checks Summary")
         .addTable([checkSummaryHeader, ...checkSummary])
         .write();
+
+      if (this.includeStatusCommits && commitStatusesSummary.length > 0) {
+        await core.summary
+          .addHeading("Commit Statuses Summary")
+          .addTable([commitStatusesSummaryHeader, ...commitStatusesSummary])
+          .write();
+      }
     }
 
     // create an output with details of the checks evaluated

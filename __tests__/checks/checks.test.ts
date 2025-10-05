@@ -1,13 +1,16 @@
 import * as core from "@actions/core";
 import Checks from "../../src/checks/checks";
 import * as checksAPI from "../../src/checks/checksAPI";
+import * as statusesAPI from "../../src/statuses/statusesAPI";
 import * as fileExtractor from "../../src/utils/checkNameExtractor";
 import { ICheck, ICheckInput } from "../../src/checks/checksInterfaces";
+import { IStatus } from "../../src/statuses/statusesInterfaces";
 import { checkStatus, checkConclusion } from "../../src/checks/checksConstants";
 import * as timeFuncs from "../../src/utils/timeFuncs";
 
 // Mock dependencies
 jest.mock("../../src/checks/checksAPI");
+jest.mock("../../src/statuses/statusesAPI");
 jest.mock("../../src/utils/checkNameExtractor");
 jest.mock("../../src/utils/timeFuncs");
 
@@ -20,6 +23,7 @@ describe("Checks", () => {
 
   // Mock API calls
   let getAllChecksMock: jest.SpyInstance;
+  let getAllStatusCommitsMock: jest.SpyInstance;
   let extractOwnCheckNameFromWorkflowMock: jest.SpyInstance;
   let sleepMock: jest.SpyInstance;
 
@@ -42,8 +46,8 @@ describe("Checks", () => {
     showJobSummary: false,
     delay: 0,
     checkRunId: undefined,
+    includeStatusCommits: false,
   };
-
   const mockChecks: ICheck[] = [
     {
       id: 1,
@@ -134,6 +138,9 @@ describe("Checks", () => {
     getAllChecksMock = jest
       .spyOn(checksAPI, "getAllChecks")
       .mockResolvedValue(mockChecks);
+    getAllStatusCommitsMock = jest
+      .spyOn(statusesAPI, "getAllStatusCommits")
+      .mockResolvedValue([]);
     extractOwnCheckNameFromWorkflowMock = jest
       .spyOn(fileExtractor, "extractOwnCheckNameFromWorkflow")
       .mockResolvedValue("allcheckspassed");
@@ -165,6 +172,9 @@ describe("Checks", () => {
       expect(checks["retries"]).toBe(defaultProps.retries);
       expect(checks["verbose"]).toBe(defaultProps.verbose);
       expect(checks["showJobSummary"]).toBe(defaultProps.showJobSummary);
+      expect(checks["includeStatusCommits"]).toBe(
+        defaultProps.includeStatusCommits
+      );
     });
   });
 
@@ -188,6 +198,109 @@ describe("Checks", () => {
       await expect(checks.fetchAllChecks()).rejects.toThrow(
         "Error getting all checks: API Error"
       );
+    });
+
+    it("should not call getAllStatusCommits when includeStatusCommits is false", async () => {
+      const checks = new Checks({
+        ...defaultProps,
+        includeStatusCommits: false,
+      });
+      await checks.fetchAllChecks();
+
+      expect(getAllChecksMock).toHaveBeenCalled();
+      expect(getAllStatusCommitsMock).not.toHaveBeenCalled();
+      expect(checks["allChecks"]).toEqual(mockChecks);
+    });
+
+    it("should call getAllStatusCommits when includeStatusCommits is true", async () => {
+      const mockStatuses: IStatus[] = [
+        {
+          id: 1001,
+          context: "ci/test",
+          state: "success",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:01:00Z",
+          creator: {
+            login: "testuser",
+            id: 123,
+          },
+        },
+        {
+          id: 1002,
+          context: "ci/test",
+          state: "failure",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:02:00Z",
+          creator: {
+            login: "testuser",
+            id: 123,
+          },
+        },
+      ];
+
+      getAllStatusCommitsMock.mockResolvedValueOnce(mockStatuses);
+
+      const checks = new Checks({
+        ...defaultProps,
+        includeStatusCommits: true,
+      });
+      await checks.fetchAllChecks();
+
+      expect(getAllChecksMock).toHaveBeenCalledWith(
+        defaultProps.owner,
+        defaultProps.repo,
+        defaultProps.commitSHA
+      );
+      expect(getAllStatusCommitsMock).toHaveBeenCalledWith(
+        defaultProps.owner,
+        defaultProps.repo,
+        defaultProps.commitSHA
+      );
+
+      // Should have both checks and mapped status commits (only most recent per context/creator)
+      expect(checks["allChecks"].length).toBeGreaterThan(mockChecks.length);
+    });
+
+    it("should filter statuses to most recent per context and creator", async () => {
+      const mockStatuses: IStatus[] = [
+        {
+          id: 1002,
+          context: "ci/test",
+          state: "failure",
+          created_at: "2022-01-01T00:01:00Z",
+          updated_at: "2022-01-01T00:01:00Z",
+          creator: {
+            login: "testuser",
+            id: 123,
+          },
+        },
+        {
+          id: 1001,
+          context: "ci/test",
+          state: "success",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:00:00Z",
+          creator: {
+            login: "testuser",
+            id: 123,
+          },
+        },
+      ];
+
+      getAllStatusCommitsMock.mockResolvedValueOnce(mockStatuses);
+
+      const checks = new Checks({
+        ...defaultProps,
+        includeStatusCommits: true,
+      });
+      await checks.fetchAllChecks();
+
+      // Should only include the status with highest ID (1002)
+      const statusChecks = checks["allChecks"].filter(
+        (check) => check.commit_status !== undefined
+      );
+      expect(statusChecks).toHaveLength(1);
+      expect(statusChecks[0].commit_status?.id).toBe(1002);
     });
   });
 
@@ -388,6 +501,24 @@ describe("Checks", () => {
       expect(infoMock).toHaveBeenCalledWith(
         expect.stringContaining("Waiting for check completion")
       );
+    });
+
+    it("should return passed true when all checks pass and failFast is false", () => {
+      const checks = new Checks({ ...defaultProps, failFast: false });
+      const passingChecks = [mockChecks[0], mockChecks[3], mockChecks[4]]; // SUCCESS, SKIPPED, NEUTRAL
+
+      const result = checks.evaluateChecksStatus(passingChecks);
+
+      expect(result).toEqual({ in_progress: false, passed: true });
+    });
+
+    it("should return passed false when there are failing checks and failFast is false", () => {
+      const checks = new Checks({ ...defaultProps, failFast: false });
+      const mixedChecks = [mockChecks[0], mockChecks[1]]; // SUCCESS and FAILURE
+
+      const result = checks.evaluateChecksStatus(mixedChecks);
+
+      expect(result).toEqual({ in_progress: false, passed: false });
     });
   });
 
@@ -686,7 +817,73 @@ describe("Checks", () => {
       expect(sleepMock).toHaveBeenCalledTimes(2);
     });
 
-    // The polling logic is already tested in other tests, so we'll remove this test for now
-    // as it's causing inconsistent results
+    it("should generate commit statuses summary when includeStatusCommits is true and showJobSummary is true", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+        includeStatusCommits: true,
+      };
+
+      const mockStatusCheck: ICheck = {
+        id: 2000,
+        name: "ci/test",
+        status: "in_progress",
+        conclusion: null,
+        started_at: "2022-01-01T00:00:00Z",
+        completed_at: null,
+        check_suite: { id: 0 },
+        app: { id: 1234, slug: "testuser", name: "testuser" },
+        commit_status: {
+          id: 2000,
+          context: "ci/test",
+          state: "pending",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:01:00Z",
+          creator: { login: "testuser", id: 1234 },
+        },
+      };
+
+      const checks = new Checks(props);
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: [...mockChecks, mockStatusCheck],
+      });
+
+      await checks.run();
+
+      expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
+      expect(summaryMock.addHeading).toHaveBeenCalledWith(
+        "Commit Statuses Summary"
+      );
+      expect(summaryMock.addTable).toHaveBeenCalledTimes(2); // Once for checks, once for statuses
+      expect(summaryMock.write).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not generate commit statuses summary when there are no status commits", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+        includeStatusCommits: true,
+      };
+
+      const checks = new Checks(props);
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: mockChecks, // No checks with commit_status
+      });
+
+      await checks.run();
+
+      expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
+      expect(summaryMock.addHeading).not.toHaveBeenCalledWith(
+        "Commit Statuses Summary"
+      );
+      expect(summaryMock.addTable).toHaveBeenCalledTimes(1); // Only checks summary
+      expect(summaryMock.write).toHaveBeenCalledTimes(1);
+    });
   });
 });

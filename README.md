@@ -1,18 +1,18 @@
 # All checks pass action
 
+This action will check that all checks have passed on a given pull request.
+
 ## V2
 
 ### What's Changed
 
 - Upgrade to Node24 runtime
-- On GitHub.com, the name of the check run created by the workflow itself is extracted from the available `job.check_run_id` context using this action as a reusable is now supported
-
-This action will check that all checks have passed on a given pull request.
+- On GitHub.com, the name of the check run created by the workflow itself is extracted from the available `job.check_run_id` context using this action as a reusable is now supported. This functionality is not yet available on GitHub Enterprise Server (GHES), will likely be available on the next release version - 3.18. On GitHub Enterprise Server, the action will attempt to extract its check name from the workflow file.
+- Support for [commit statuses](https://docs.github.com/en/rest/commits/statuses?apiVersion=2022-11-28#about-commit-statuses) is now implemented on V2. To prevent a breaking change, this is disabled by default. You can enable it by setting the `include_commit_statuses` input to `true`.
 
 ## Basic usage
 
-The action works well with the `pull_request` or `pull_request_target` events. You can use it to confirm
-that all checks that run on a pull request passed.
+The action works well with the `pull_request` or `pull_request_target` events. You can use it to confirm that all checks (and optionally commit statuses) that run on a pull request passed.
 
 ```yaml
 name: All checks pass
@@ -23,6 +23,9 @@ on:
 jobs:
   allchecks:
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
     steps:
       - uses: wechuli/allcheckspassed@v2
 ```
@@ -36,10 +39,8 @@ The action also created a checks summary with details of each check that was eva
 
 ## How it works
 
-When the workflow is triggered, the action will poll the GitHub API every 1 minute (default) for 10 tries (default) -
-you can change these to your liking.
-If all the checks are successful, the action will succeed. If any of the checks are still in progress, pending or
-queued, the action fails
+When the workflow is triggered, the action will poll the GitHub API every 1 minute (default) for 10 tries (default) - you can change these to your liking.
+If all the checks are successful, the action will succeed. If any of the checks are still in progress, pending or queued, the action fails
 
 It will create a job summary of each check along with the details.
 
@@ -54,6 +55,18 @@ jobs:
     permissions:
       checks: read
       contents: read
+```
+
+If you additionally want the action to check for commit statues on top of checks, you'll need to add the `statuses` permission:
+
+```yaml
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+      statuses: read
 ```
 
 ## Examples
@@ -193,6 +206,18 @@ By default, the action will create a job summary with the details of each check 
           show_job_summary: false
 ```
 
+### Status Commits
+
+You can choose to include commit statuses in addition to checks for evaluation. By default, this is disabled. If your CI/CD is only every running on GitHub Actions and you are not explicitly calling the commit status API, then that option can default to false as is. If you have an external integration (such as Jenkins) that is reporting commit statuses instead of checks, you can set the `include_commit_statuses` option to `true` so that those are evaluated as well. 
+
+```yaml
+    steps:
+      - uses: wechuli/allcheckspassed@v2
+        with:
+          include_commit_statuses: true
+```
+Checks and status commits use a different API and there are some nuances to be aware of. More on this is documented at [./docs/adrs/commit_status.md](./docs/adrs/commit_status.md)
+
 
 ## Setup with environments
 
@@ -238,6 +263,5 @@ to branch protection rules as they are more flexible.
 Ultimately this is a temporary workaround for a missing feature, ensure all checks that run pass. GitHub may implement
 this as some point, at which point you will not need the action anymore.
 
-- The action is not checking for commit statuses, which uses a different API. If you need this, please open an issue.
 - Unfortunately, you'll need to poll the API to get the state of the checks. The action itself is consuming GitHub
   Actions minutes doing this polling
