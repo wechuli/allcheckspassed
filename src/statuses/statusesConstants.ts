@@ -5,11 +5,11 @@ export const commitStatusState = {
   SUCCESS: "success",
 };
 
-interface ICommitStatuseEmoji {
+interface ICommitStatusEmoji {
   [key: string]: string;
 }
 
-const commitStatusStateEmojis: ICommitStatuseEmoji = {
+const commitStatusStateEmojis: ICommitStatusEmoji = {
   failure: "❌",
   pending: "⏳",
   error: "⚠️",
