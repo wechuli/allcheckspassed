@@ -502,6 +502,24 @@ describe("Checks", () => {
         expect.stringContaining("Waiting for check completion")
       );
     });
+
+    it("should return passed true when all checks pass and failFast is false", () => {
+      const checks = new Checks({ ...defaultProps, failFast: false });
+      const passingChecks = [mockChecks[0], mockChecks[3], mockChecks[4]]; // SUCCESS, SKIPPED, NEUTRAL
+
+      const result = checks.evaluateChecksStatus(passingChecks);
+
+      expect(result).toEqual({ in_progress: false, passed: true });
+    });
+
+    it("should return passed false when there are failing checks and failFast is false", () => {
+      const checks = new Checks({ ...defaultProps, failFast: false });
+      const mixedChecks = [mockChecks[0], mockChecks[1]]; // SUCCESS and FAILURE
+
+      const result = checks.evaluateChecksStatus(mixedChecks);
+
+      expect(result).toEqual({ in_progress: false, passed: false });
+    });
   });
 
   describe("iterateChecks", () => {
@@ -799,7 +817,73 @@ describe("Checks", () => {
       expect(sleepMock).toHaveBeenCalledTimes(2);
     });
 
-    // The polling logic is already tested in other tests, so we'll remove this test for now
-    // as it's causing inconsistent results
+    it("should generate commit statuses summary when includeStatusCommits is true and showJobSummary is true", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+        includeStatusCommits: true,
+      };
+
+      const mockStatusCheck: ICheck = {
+        id: 2000,
+        name: "ci/test",
+        status: "in_progress",
+        conclusion: null,
+        started_at: "2022-01-01T00:00:00Z",
+        completed_at: null,
+        check_suite: { id: 0 },
+        app: { id: 1234, slug: "testuser", name: "testuser" },
+        commit_status: {
+          id: 2000,
+          context: "ci/test",
+          state: "pending",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:01:00Z",
+          creator: { login: "testuser", id: 1234 },
+        },
+      };
+
+      const checks = new Checks(props);
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: [...mockChecks, mockStatusCheck],
+      });
+
+      await checks.run();
+
+      expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
+      expect(summaryMock.addHeading).toHaveBeenCalledWith(
+        "Commit Statuses Summary"
+      );
+      expect(summaryMock.addTable).toHaveBeenCalledTimes(2); // Once for checks, once for statuses
+      expect(summaryMock.write).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not generate commit statuses summary when there are no status commits", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+        includeStatusCommits: true,
+      };
+
+      const checks = new Checks(props);
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: mockChecks, // No checks with commit_status
+      });
+
+      await checks.run();
+
+      expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
+      expect(summaryMock.addHeading).not.toHaveBeenCalledWith(
+        "Commit Statuses Summary"
+      );
+      expect(summaryMock.addTable).toHaveBeenCalledTimes(1); // Only checks summary
+      expect(summaryMock.write).toHaveBeenCalledTimes(1);
+    });
   });
 });
