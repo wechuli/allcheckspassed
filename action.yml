@@ -69,7 +69,7 @@ inputs:
     required: false
     default: "true"
   check_run_id:
-    description: "This is the check run id of the current job, there is no need to set this, the action will automatically set it for you. This is used to exclude the current job from the evaluation"
+    description: "This is the check run id of the current job, there is no need to set this (and setting it will actually cause a problem), the action will automatically set it for you. This is used to exclude the current job from the evaluation"
     required: false
     default: "${{ job.check_run_id }}"
 
