@@ -7,7 +7,7 @@ This action will check that all checks have passed on a given pull request.
 ### What's Changed
 
 - Upgrade to Node24 runtime
-- On GitHub.com, the name of the check run created by the workflow itself is extracted from the available `job.check_run_id` context using this action as a reusable is now supported. This functionality is not yet available on GitHub Enterprise Server (GHES), will likely be available on the next release version - 3.18. On GitHub Enterprise Server, the action will attempt to extract its check name from the workflow file.
+- On GitHub.com, the name of the check run created by the workflow itself is extracted from the available `job.check_run_id` context, using this action as a reusable is now supported. This functionality is not yet available on GitHub Enterprise Server (GHES), will likely be available on the next release version - 3.18. On GitHub Enterprise Server, the action will attempt to extract its check name from the workflow file.
 - Support for [commit statuses](https://docs.github.com/en/rest/commits/statuses?apiVersion=2022-11-28#about-commit-statuses) is now implemented on V2. To prevent a breaking change, this is disabled by default. You can enable it by setting the `include_commit_statuses` input to `true`.
 
 ## Basic usage
@@ -208,7 +208,7 @@ By default, the action will create a job summary with the details of each check 
 
 ### Status Commits
 
-You can choose to include commit statuses in addition to checks for evaluation. By default, this is disabled. If your CI/CD is only every running on GitHub Actions and you are not explicitly calling the commit status API, then that option can default to false as is. If you have an external integration (such as Jenkins) that is reporting commit statuses instead of checks, you can set the `include_commit_statuses` option to `true` so that those are evaluated as well. 
+You can choose to include commit statuses in addition to checks for evaluation. By default, this is disabled. If your CI/CD is only ever running on GitHub Actions and you are not explicitly calling the commit status API, then that option can be left to default to false as is. If you have an external integration (such as Jenkins) that is reporting commit statuses instead of checks, you can set the `include_commit_statuses` option to `true` so that those are evaluated as well. 
 
 ```yaml
     steps:
