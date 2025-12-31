@@ -30,7 +30,7 @@ export interface IInputs {
 
 function inputsParser(): IInputs {
   const eventName = github.context.eventName;
-  const validPullRequestEvents = ["pull_request", "pull_request_target"];
+  const validPullRequestEvents = ["pull_request", "pull_request_target", "pull_request_review"];
   let headSha: string | undefined = undefined;
   if (validPullRequestEvents.includes(eventName)) {
     headSha = github.context.payload.pull_request?.head.sha as string;
