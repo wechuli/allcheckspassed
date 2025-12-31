@@ -43,7 +43,7 @@ const validators_1 = require("./validators");
 const checksFilters_1 = require("../checks/checksFilters");
 function inputsParser() {
     const eventName = github.context.eventName;
-    const validPullRequestEvents = ["pull_request", "pull_request_target"];
+    const validPullRequestEvents = ["pull_request", "pull_request_target", "pull_request_review"];
     let headSha = undefined;
     if (validPullRequestEvents.includes(eventName)) {
         headSha = github.context.payload.pull_request?.head.sha;
