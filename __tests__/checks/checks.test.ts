@@ -379,7 +379,7 @@ describe("Checks", () => {
       await checks.fetchAllChecks();
       await checks.filterChecks();
 
-      expect(checks["filteredChecks"]).toHaveLength(4);
+      expect(checks["filteredChecks"]).toHaveLength(5);
       expect(
         checks["filteredChecks"].some((check) => check.name === "test-check-1")
       ).toBeFalsy();
