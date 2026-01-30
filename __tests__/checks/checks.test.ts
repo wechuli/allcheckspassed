@@ -99,6 +99,16 @@ describe("Checks", () => {
       check_suite: { id: 105 },
       app: { id: 1005, slug: "another-app", name: "Another App" },
     },
+    {
+      id: 6,
+      name: "test-check-6",
+      status: checkStatus.PENDING,
+      conclusion: null,
+      started_at: "2022-01-01T00:00:00Z",
+      completed_at: null,
+      check_suite: { id: 106 },
+      app: { id: 1006, slug: "github-actions", name: "GitHub Actions" },
+    },
   ];
 
   // Mock own check
@@ -369,7 +379,7 @@ describe("Checks", () => {
       await checks.fetchAllChecks();
       await checks.filterChecks();
 
-      expect(checks["filteredChecks"]).toHaveLength(4);
+      expect(checks["filteredChecks"]).toHaveLength(5);
       expect(
         checks["filteredChecks"].some((check) => check.name === "test-check-1")
       ).toBeFalsy();
@@ -437,6 +447,15 @@ describe("Checks", () => {
       const inProgressChecks = [mockChecks[2]]; // IN_PROGRESS check
 
       const result = checks.evaluateChecksStatus(inProgressChecks);
+
+      expect(result).toEqual({ in_progress: true, passed: false });
+    });
+
+    it("should detect pending checks as in_progress", () => {
+      const checks = new Checks(defaultProps);
+      const pendingChecks = [mockChecks[5]]; // PENDING check
+
+      const result = checks.evaluateChecksStatus(pendingChecks);
 
       expect(result).toEqual({ in_progress: true, passed: false });
     });
