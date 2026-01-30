@@ -163,6 +163,7 @@ class Checks {
             checksConstants_1.checkStatus.IN_PROGRESS,
             checksConstants_1.checkStatus.QUEUED,
             checksConstants_1.checkStatus.WAITING,
+            checksConstants_1.checkStatus.PENDING,
         ];
         let anyInProgressQueuedWaiting = checks.filter((check) => inProgressQueuedWaiting.includes(check.status));
         if (anyInProgressQueuedWaiting.length > 0) {

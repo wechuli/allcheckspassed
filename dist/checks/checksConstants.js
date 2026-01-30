@@ -16,6 +16,7 @@ exports.checkStatus = {
     IN_PROGRESS: "in_progress",
     COMPLETED: "completed",
     WAITING: "waiting",
+    PENDING: "pending",
 };
 exports.GitHubActionsBotSlug = "github-actions";
 //# sourceMappingURL=checksConstants.js.map
