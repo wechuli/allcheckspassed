@@ -200,6 +200,7 @@ export default class Checks {
       checkStatus.IN_PROGRESS,
       checkStatus.QUEUED,
       checkStatus.WAITING,
+      checkStatus.PENDING,
     ];
     let anyInProgressQueuedWaiting = checks.filter((check) =>
       inProgressQueuedWaiting.includes(check.status)
