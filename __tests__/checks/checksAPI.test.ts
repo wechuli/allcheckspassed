@@ -1,4 +1,7 @@
-import { getAllChecks } from "../../src/checks/checksAPI";
+import {
+  getAllChecks,
+  getWorkflowRunsForCommit,
+} from "../../src/checks/checksAPI";
 import * as octokitModule from "../../src/utils/octokit";
 import { ICheck } from "../../src/checks/checksInterfaces";
 import { checkStatus, checkConclusion } from "../../src/checks/checksConstants";
@@ -278,6 +281,62 @@ describe("checksAPI", () => {
       expect(result[1].conclusion).toBe(checkConclusion.FAILURE);
       expect(result[2].conclusion).toBe(checkConclusion.SKIPPED);
       expect(result[3].conclusion).toBe(checkConclusion.NEUTRAL);
+    });
+  });
+
+  describe("getWorkflowRunsForCommit", () => {
+    it("should fetch workflow runs for a commit SHA", async () => {
+      const mockApiResponse = [
+        {
+          id: 100,
+          workflow_id: 10,
+          check_suite_id: 500,
+          status: "completed",
+          conclusion: "success",
+          extra_field: "ignored",
+        },
+        {
+          id: 200,
+          workflow_id: 20,
+          check_suite_id: 600,
+          status: "completed",
+          conclusion: "failure",
+          extra_field: "also ignored",
+        },
+      ];
+
+      paginateMock.mockResolvedValue(mockApiResponse);
+
+      const result = await getWorkflowRunsForCommit("owner", "repo", "abc123");
+
+      expect(paginateMock).toHaveBeenCalledWith(
+        "GET /repos/:owner/:repo/actions/runs",
+        {
+          owner: "owner",
+          repo: "repo",
+          head_sha: "abc123",
+        }
+      );
+      expect(result).toEqual([
+        { id: 100, workflow_id: 10, check_suite_id: 500 },
+        { id: 200, workflow_id: 20, check_suite_id: 600 },
+      ]);
+    });
+
+    it("should throw error when API call fails", async () => {
+      paginateMock.mockRejectedValue(new Error("API Error"));
+
+      await expect(
+        getWorkflowRunsForCommit("owner", "repo", "abc123")
+      ).rejects.toThrow("Error getting workflow runs for commit: API Error");
+    });
+
+    it("should return empty array when no workflow runs exist", async () => {
+      paginateMock.mockResolvedValue([]);
+
+      const result = await getWorkflowRunsForCommit("owner", "repo", "abc123");
+
+      expect(result).toEqual([]);
     });
   });
 });

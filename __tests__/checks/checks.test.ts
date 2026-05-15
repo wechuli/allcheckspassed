@@ -23,6 +23,7 @@ describe("Checks", () => {
 
   // Mock API calls
   let getAllChecksMock: jest.SpyInstance;
+  let getWorkflowRunsForCommitMock: jest.SpyInstance;
   let getAllStatusCommitsMock: jest.SpyInstance;
   let extractOwnCheckNameFromWorkflowMock: jest.SpyInstance;
   let sleepMock: jest.SpyInstance;
@@ -148,6 +149,9 @@ describe("Checks", () => {
     getAllChecksMock = jest
       .spyOn(checksAPI, "getAllChecks")
       .mockResolvedValue(mockChecks);
+    getWorkflowRunsForCommitMock = jest
+      .spyOn(checksAPI, "getWorkflowRunsForCommit")
+      .mockResolvedValue([]);
     getAllStatusCommitsMock = jest
       .spyOn(statusesAPI, "getAllStatusCommits")
       .mockResolvedValue([]);
@@ -269,6 +273,98 @@ describe("Checks", () => {
 
       // Should have both checks and mapped status commits (only most recent per context/creator)
       expect(checks["allChecks"].length).toBeGreaterThan(mockChecks.length);
+    });
+
+    it("should filter out checks from superseded workflow runs", async () => {
+      const supersededCheck: ICheck = {
+        id: 5000,
+        name: "E2E Tests",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.FAILURE,
+        started_at: "2024-05-14T00:00:00Z",
+        completed_at: "2024-05-14T00:10:00Z",
+        check_suite: { id: 900 },
+        app: { id: 1001, slug: "github-actions", name: "GitHub Actions" },
+      };
+      const freshCheck: ICheck = {
+        id: 4999,
+        name: "E2E Tests",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.SUCCESS,
+        started_at: "2024-05-14T00:00:00Z",
+        completed_at: "2024-05-14T00:10:00Z",
+        check_suite: { id: 901 },
+        app: { id: 1001, slug: "github-actions", name: "GitHub Actions" },
+      };
+
+      getAllChecksMock.mockResolvedValueOnce([supersededCheck, freshCheck]);
+      getWorkflowRunsForCommitMock.mockResolvedValueOnce([
+        { id: 100, workflow_id: 50, check_suite_id: 900 },
+        { id: 200, workflow_id: 50, check_suite_id: 901 },
+      ]);
+
+      const checks = new Checks(defaultProps);
+      await checks.fetchAllChecks();
+
+      expect(checks["allChecks"]).toHaveLength(1);
+      expect(checks["allChecks"][0].id).toBe(4999);
+      expect(checks["allChecks"][0].conclusion).toBe(checkConclusion.SUCCESS);
+    });
+
+    it("should proceed with all checks when workflow runs API fails", async () => {
+      getWorkflowRunsForCommitMock.mockRejectedValueOnce(
+        new Error("API Error")
+      );
+
+      const checks = new Checks(defaultProps);
+      await checks.fetchAllChecks();
+
+      expect(checks["allChecks"]).toEqual(mockChecks);
+      expect(warningMock).toHaveBeenCalledWith(
+        expect.stringContaining("Could not fetch workflow runs")
+      );
+    });
+
+    it("should not report false failure when superseded run has FAILURE conclusion (issue #104)", async () => {
+      const supersededFailure: ICheck = {
+        id: 5000,
+        name: "E2E Tests",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.FAILURE,
+        started_at: "2024-05-14T00:00:00Z",
+        completed_at: "2024-05-14T00:10:00Z",
+        check_suite: { id: 900 },
+        app: { id: 1001, slug: "github-actions", name: "GitHub Actions" },
+      };
+      const freshSuccess: ICheck = {
+        id: 4999,
+        name: "E2E Tests",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.SUCCESS,
+        started_at: "2024-05-14T00:00:00Z",
+        completed_at: "2024-05-14T00:10:00Z",
+        check_suite: { id: 901 },
+        app: { id: 1001, slug: "github-actions", name: "GitHub Actions" },
+      };
+
+      getAllChecksMock.mockResolvedValueOnce([supersededFailure, freshSuccess]);
+      getWorkflowRunsForCommitMock.mockResolvedValueOnce([
+        { id: 100, workflow_id: 50, check_suite_id: 900 },
+        { id: 200, workflow_id: 50, check_suite_id: 901 },
+      ]);
+
+      const checks = new Checks(defaultProps);
+      await checks.fetchAllChecks();
+      await checks.filterChecks();
+
+      const filteredChecksExcludingOwnCheck = checks["filteredChecks"].filter(
+        (check: ICheck) => check.id !== checks["ownCheck"]?.id
+      );
+      const result = checks.evaluateChecksStatus(
+        filteredChecksExcludingOwnCheck
+      );
+
+      expect(result).toEqual({ in_progress: false, passed: true });
     });
 
     it("should filter statuses to most recent per context and creator", async () => {

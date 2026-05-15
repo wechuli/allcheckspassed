@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import { IInputs } from "../utils/inputsExtractor";
-import { getAllChecks } from "./checksAPI";
+import { getAllChecks, getWorkflowRunsForCommit } from "./checksAPI";
 import { getAllStatusCommits } from "../statuses/statusesAPI";
 import { mapStatusesToChecksModel } from "../statuses/statuses";
 import { addCommitStatusEmoji } from "../statuses/statusesConstants";
@@ -12,6 +12,7 @@ import {
 import {
   checkOneOfTheChecksInputIsEmpty,
   filterChecksWithMatchingNameAndAppId,
+  filterSupersededWorkflowRunChecks,
   removeChecksWithMatchingNameAndAppId,
   removeDuplicateChecksEntriesFromSelf,
   removeDuplicateEntriesChecksInputsFromSelf,
@@ -80,7 +81,21 @@ export default class Checks {
     try {
       let checks = await getAllChecks(this.owner, this.repo, this.ref);
 
-      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
+      try {
+        const workflowRuns = await getWorkflowRunsForCommit(
+          this.owner,
+          this.repo,
+          this.ref
+        );
+        checks = filterSupersededWorkflowRunChecks(checks, workflowRuns);
+      } catch (error: any) {
+        core.warning(
+          "Could not fetch workflow runs to filter superseded checks, " +
+            "proceeding with all checks: " +
+            error.message
+        );
+      }
+
       if (this.includeStatusCommits) {
         let statusCommits = await getAllStatusCommits(
           this.owner,
