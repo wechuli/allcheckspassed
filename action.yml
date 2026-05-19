@@ -68,6 +68,10 @@ inputs:
     description: "If set to true, the action will log a summary of the checks that were evaluated"
     required: false
     default: "true"
+  ignore_superseded_runs:
+    description: "If set to true, checks from GitHub Actions will be grouped by workflow run and only the latest run per workflow will be evaluated. This filters out stale checks from superseded or re-run workflows"
+    required: false
+    default: "false"
   check_run_id:
     description: "This is the check run id of the current job, there is no need to set this (and setting it will actually cause a problem), the action will automatically set it for you. This is used to exclude the current job from the evaluation"
     required: false

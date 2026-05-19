@@ -57,6 +57,7 @@ export default class Checks {
   private verbose: boolean;
   private showJobSummary: boolean;
   private includeStatusCommits: boolean;
+  private ignoreSupersededRuns: boolean;
 
   constructor(props: IRepo & IInputs) {
     this.owner = props.owner;
@@ -75,25 +76,28 @@ export default class Checks {
     this.verbose = props.verbose;
     this.showJobSummary = props.showJobSummary;
     this.includeStatusCommits = props.includeStatusCommits;
+    this.ignoreSupersededRuns = props.ignoreSupersededRuns;
   }
 
   async fetchAllChecks() {
     try {
       let checks = await getAllChecks(this.owner, this.repo, this.ref);
 
-      try {
-        const workflowRuns = await getWorkflowRunsForCommit(
-          this.owner,
-          this.repo,
-          this.ref
-        );
-        checks = filterSupersededWorkflowRunChecks(checks, workflowRuns);
-      } catch (error: any) {
-        core.warning(
-          "Could not fetch workflow runs to filter superseded checks, " +
-            "proceeding with all checks: " +
-            error.message
-        );
+      if (this.ignoreSupersededRuns) {
+        try {
+          const workflowRuns = await getWorkflowRunsForCommit(
+            this.owner,
+            this.repo,
+            this.ref
+          );
+          checks = filterSupersededWorkflowRunChecks(checks, workflowRuns);
+        } catch (error: any) {
+          core.warning(
+            "Could not fetch workflow runs to filter superseded checks, " +
+              "proceeding with all checks: " +
+              error.message
+          );
+        }
       }
 
       if (this.includeStatusCommits) {

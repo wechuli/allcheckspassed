@@ -31,6 +31,7 @@ jest.mock("../src/utils/inputsExtractor", () => ({
     delay: 0,
     checkRunId: undefined,
     includeStatusCommits: false,
+    ignoreSupersededRuns: false,
   },
 }));
 

@@ -48,6 +48,7 @@ describe("Checks", () => {
     delay: 0,
     checkRunId: undefined,
     includeStatusCommits: false,
+    ignoreSupersededRuns: false,
   };
   const mockChecks: ICheck[] = [
     {
@@ -189,6 +190,9 @@ describe("Checks", () => {
       expect(checks["includeStatusCommits"]).toBe(
         defaultProps.includeStatusCommits
       );
+      expect(checks["ignoreSupersededRuns"]).toBe(
+        defaultProps.ignoreSupersededRuns
+      );
     });
   });
 
@@ -275,7 +279,15 @@ describe("Checks", () => {
       expect(checks["allChecks"].length).toBeGreaterThan(mockChecks.length);
     });
 
-    it("should filter out checks from superseded workflow runs", async () => {
+    it("should not call getWorkflowRunsForCommit when ignoreSupersededRuns is false", async () => {
+      const checks = new Checks(defaultProps);
+      await checks.fetchAllChecks();
+
+      expect(getWorkflowRunsForCommitMock).not.toHaveBeenCalled();
+      expect(checks["allChecks"]).toEqual(mockChecks);
+    });
+
+    it("should filter out checks from superseded workflow runs when ignoreSupersededRuns is true", async () => {
       const supersededCheck: ICheck = {
         id: 5000,
         name: "E2E Tests",
@@ -303,9 +315,13 @@ describe("Checks", () => {
         { id: 200, workflow_id: 50, check_suite_id: 901 },
       ]);
 
-      const checks = new Checks(defaultProps);
+      const checks = new Checks({
+        ...defaultProps,
+        ignoreSupersededRuns: true,
+      });
       await checks.fetchAllChecks();
 
+      expect(getWorkflowRunsForCommitMock).toHaveBeenCalled();
       expect(checks["allChecks"]).toHaveLength(1);
       expect(checks["allChecks"][0].id).toBe(4999);
       expect(checks["allChecks"][0].conclusion).toBe(checkConclusion.SUCCESS);
@@ -316,7 +332,10 @@ describe("Checks", () => {
         new Error("API Error")
       );
 
-      const checks = new Checks(defaultProps);
+      const checks = new Checks({
+        ...defaultProps,
+        ignoreSupersededRuns: true,
+      });
       await checks.fetchAllChecks();
 
       expect(checks["allChecks"]).toEqual(mockChecks);
@@ -353,7 +372,10 @@ describe("Checks", () => {
         { id: 200, workflow_id: 50, check_suite_id: 901 },
       ]);
 
-      const checks = new Checks(defaultProps);
+      const checks = new Checks({
+        ...defaultProps,
+        ignoreSupersededRuns: true,
+      });
       await checks.fetchAllChecks();
       await checks.filterChecks();
 
