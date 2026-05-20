@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import { IInputs } from "../utils/inputsExtractor";
-import { getAllChecks } from "./checksAPI";
+import { getAllChecks, getWorkflowRunsForCommit } from "./checksAPI";
 import { getAllStatusCommits } from "../statuses/statusesAPI";
 import { mapStatusesToChecksModel } from "../statuses/statuses";
 import { addCommitStatusEmoji } from "../statuses/statusesConstants";
@@ -12,6 +12,7 @@ import {
 import {
   checkOneOfTheChecksInputIsEmpty,
   filterChecksWithMatchingNameAndAppId,
+  filterSupersededWorkflowRunChecks,
   removeChecksWithMatchingNameAndAppId,
   removeDuplicateChecksEntriesFromSelf,
   removeDuplicateEntriesChecksInputsFromSelf,
@@ -56,6 +57,7 @@ export default class Checks {
   private verbose: boolean;
   private showJobSummary: boolean;
   private includeStatusCommits: boolean;
+  private ignoreSupersededRuns: boolean;
 
   constructor(props: IRepo & IInputs) {
     this.owner = props.owner;
@@ -74,13 +76,30 @@ export default class Checks {
     this.verbose = props.verbose;
     this.showJobSummary = props.showJobSummary;
     this.includeStatusCommits = props.includeStatusCommits;
+    this.ignoreSupersededRuns = props.ignoreSupersededRuns;
   }
 
   async fetchAllChecks() {
     try {
       let checks = await getAllChecks(this.owner, this.repo, this.ref);
 
-      // if the user wanted us to include the commit statuses as well, then we will fetch them and add them to the checks
+      if (this.ignoreSupersededRuns) {
+        try {
+          const workflowRuns = await getWorkflowRunsForCommit(
+            this.owner,
+            this.repo,
+            this.ref
+          );
+          checks = filterSupersededWorkflowRunChecks(checks, workflowRuns);
+        } catch (error: any) {
+          core.warning(
+            "Could not fetch workflow runs to filter superseded checks, " +
+              "proceeding with all checks: " +
+              error.message
+          );
+        }
+      }
+
       if (this.includeStatusCommits) {
         let statusCommits = await getAllStatusCommits(
           this.owner,

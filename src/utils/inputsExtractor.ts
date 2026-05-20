@@ -26,6 +26,7 @@ export interface IInputs {
   showJobSummary: boolean;
   checkRunId?: number | undefined;
   includeStatusCommits: boolean;
+  ignoreSupersededRuns: boolean;
 }
 
 function inputsParser(): IInputs {
@@ -70,6 +71,8 @@ function inputsParser(): IInputs {
     parseInt(core.getInput("check_run_id")) || undefined;
   const includeStatusCommits: boolean =
     core.getInput("include_status_commits") == "true";
+  const ignoreSupersededRuns: boolean =
+    core.getInput("ignore_superseded_runs") == "true";
 
   return {
     commitSHA,
@@ -88,6 +91,7 @@ function inputsParser(): IInputs {
     showJobSummary,
     checkRunId,
     includeStatusCommits,
+    ignoreSupersededRuns,
   };
 }
 

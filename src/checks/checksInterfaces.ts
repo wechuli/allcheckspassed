@@ -26,3 +26,9 @@ export interface IDetermineChecksStatus {
   in_progress: boolean;
   passed: boolean;
 }
+
+export interface IWorkflowRun {
+  id: number;
+  workflow_id: number;
+  check_suite_id: number;
+}

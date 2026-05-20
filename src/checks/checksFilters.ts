@@ -1,4 +1,4 @@
-import { ICheck, ICheckInput } from "./checksInterfaces";
+import { ICheck, ICheckInput, IWorkflowRun } from "./checksInterfaces";
 
 export enum FilterTypes {
   exclude = "exclude",
@@ -151,6 +151,35 @@ export function removeDuplicateChecksEntriesFromSelf(
     }
   });
   return uniqueChecks;
+}
+
+export function filterSupersededWorkflowRunChecks(
+  checks: ICheck[],
+  workflowRuns: IWorkflowRun[]
+): ICheck[] {
+  if (workflowRuns.length === 0) {
+    return checks;
+  }
+
+  const latestRunPerWorkflow = new Map<number, IWorkflowRun>();
+  for (const run of workflowRuns) {
+    const existing = latestRunPerWorkflow.get(run.workflow_id);
+    if (!existing || run.id > existing.id) {
+      latestRunPerWorkflow.set(run.workflow_id, run);
+    }
+  }
+
+  const latestSuiteIds = new Set(
+    Array.from(latestRunPerWorkflow.values()).map((r) => r.check_suite_id)
+  );
+  const allSuiteIds = new Set(workflowRuns.map((r) => r.check_suite_id));
+  const supersededSuiteIds = new Set(
+    [...allSuiteIds].filter((id) => !latestSuiteIds.has(id))
+  );
+
+  return checks.filter(
+    (check) => !supersededSuiteIds.has(check.check_suite.id)
+  );
 }
 
 export function filterChecksByStatus(checks: ICheck[], status: string) {
