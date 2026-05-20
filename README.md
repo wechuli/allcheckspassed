@@ -18,7 +18,7 @@ The action works well with the `pull_request` or `pull_request_target` events. Y
 name: All checks pass
 on:
   pull_request:
-    types: [ opened, synchronize, reopened, ready_for_review ]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   allchecks:
@@ -69,6 +69,18 @@ jobs:
       statuses: read
 ```
 
+If you enable the `ignore_superseded_runs` option (see [Ignore superseded workflow runs](#ignore-superseded-workflow-runs) below), the action additionally calls the GitHub Actions Runs API, which requires the `actions: read` permission:
+
+```yaml
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+      actions: read
+```
+
 ## Examples
 
 ### Exclude certain checks from causing a failure
@@ -77,10 +89,10 @@ You can exclude certain checks from causing a failure by using the `checks_exclu
 separated string of values:
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          checks_exclude: 'CodeQL,lint,cosmetic'
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      checks_exclude: "CodeQL,lint,cosmetic"
 ```
 
 You might want to do this to allow certain checks to fail, such as a code quality check, but still require that all
@@ -90,10 +102,10 @@ The `checks_exclude` and `checks_include` inputs support Regular Expressions. Fo
 checks have the word `lint` somewhere in the string, you don't have to list them all out, you can use the following:
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          checks_exclude: '.*lint.*'
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      checks_exclude: ".*lint.*"
 ```
 
 ### Include only certain checks
@@ -103,10 +115,10 @@ for this action, but it is possible. If you want the check to always be included
 repository rulesets or branch protection rules. You can't provide both the `checks_include` and `checks_exclude`inputs.
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          checks_include: 'CodeQL'
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      checks_include: "CodeQL"
 ```
 
 ### What should be considered as passing
@@ -130,10 +142,10 @@ If you define one or more checks in the `checks_include` input, the action will 
 are missing. You can choose instead to fail the action if any of the checks are missing:
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          fail_on_missing_checks: true
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      fail_on_missing_checks: true
 ```
 
 ### Time
@@ -143,13 +155,12 @@ retries) with a delay
 between each poll of 1 minute (default). You can change these values to your liking:
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          delay: '5'
-          retries: '3'
-          polling_interval: '3'
-
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      delay: "5"
+      retries: "3"
+      polling_interval: "3"
 ```
 
 When the step with the action runs, it will wait for 5 minutes before polling the API for the first time. It will then
@@ -158,11 +169,10 @@ poll the API 3 times with a delay of 3 minutes between each poll.
 You also don't have to poll, you can just run the action once and get the result.
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          poll: false
-
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      poll: false
 ```
 
 ### Fail Fast
@@ -175,11 +185,10 @@ used to cause this action to report a failure status as soon as one other check 
 for all checks to complete before reporting a failure, you can set the fail_fast flag to false.
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          fail_fast: false
-
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      fail_fast: false
 ```
 
 ### Verbose logging
@@ -189,35 +198,66 @@ logs will indicate which specific checks are being waited on in each polling ite
 what checks are matched by `checks_include` or `checks_exclude`.
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          verbose: true
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      verbose: true
 ```
 
 ### Job summary
 
-By default, the action will create a job summary with the details of each check that was evaluated and their status. You can disable the job summary by setting  the `show_job_summary` input to false. This will prevent the action from creating a job summary at the end of the workflow run.
+By default, the action will create a job summary with the details of each check that was evaluated and their status. You can disable the job summary by setting the `show_job_summary` input to false. This will prevent the action from creating a job summary at the end of the workflow run.
 
 ```yaml
-    steps:
-      - uses: wechuli/allcheckspassed@v2
-        with:
-          show_job_summary: false
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      show_job_summary: false
 ```
 
 ### Status Commits
 
-You can choose to include commit statuses in addition to checks for evaluation. By default, this is disabled. If your CI/CD is only ever running on GitHub Actions and you are not explicitly calling the commit status API, then that option can be left to default to false as is. If you have an external integration (such as Jenkins) that is reporting commit statuses instead of checks, you can set the `include_commit_statuses` option to `true` so that those are evaluated as well. 
+You can choose to include commit statuses in addition to checks for evaluation. By default, this is disabled. If your CI/CD is only ever running on GitHub Actions and you are not explicitly calling the commit status API, then that option can be left to default to false as is. If you have an external integration (such as Jenkins) that is reporting commit statuses instead of checks, you can set the `include_commit_statuses` option to `true` so that those are evaluated as well.
 
 ```yaml
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      include_commit_statuses: true
+```
+
+Checks and status commits use a different API and there are some nuances to be aware of. More on this is documented at [./docs/adrs/commit_status.md](./docs/adrs/commit_status.md)
+
+### Ignore superseded workflow runs
+
+By default, the action evaluates every check run that the Checks API returns for the commit and deduplicates by `(check name, app id)`. This means that if a GitHub Actions workflow is re-run on the same commit, stale check runs from the older run may still be evaluated when their names do not exactly match the new run (for example, matrix jobs in a cancelled run whose templates were never expanded). See [#104](https://github.com/wechuli/allcheckspassed/issues/104) for a real-world example.
+
+You can opt in to filtering check runs down to the latest GitHub Actions run per workflow on the commit by setting `ignore_superseded_runs` to `true`:
+
+```yaml
+steps:
+  - uses: wechuli/allcheckspassed@v2
+    with:
+      ignore_superseded_runs: true
+```
+
+When this is enabled, the action calls `GET /repos/:owner/:repo/actions/runs?head_sha=<sha>` in addition to the Checks API, so the workflow must grant the **`actions: read`** permission:
+
+```yaml
+jobs:
+  allchecks:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+      actions: read
     steps:
       - uses: wechuli/allcheckspassed@v2
         with:
-          include_commit_statuses: true
+          ignore_superseded_runs: true
 ```
-Checks and status commits use a different API and there are some nuances to be aware of. More on this is documented at [./docs/adrs/commit_status.md](./docs/adrs/commit_status.md)
 
+This mode and the default raw-checks mode behave differently in some edge cases (notably around manually-created check runs that live in cancelled check suites). The two modes, what each one does, and guidance on when to use which are documented in [./docs/adrs/evaluation_modes.md](./docs/adrs/evaluation_modes.md).
 
 ## Setup with environments
 
@@ -235,9 +275,9 @@ a long time.
 jobs:
   allchecks:
     runs-on: ubuntu-latest
-    environment: 
-       name: delayenv
-       deployment: false
+    environment:
+      name: delayenv
+      deployment: false
     steps:
       - uses: wechuli/allcheckspassed@v2
         with:
