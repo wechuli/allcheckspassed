@@ -49,8 +49,18 @@
       "/node_modules/",
       "/dist/"
     ],
+    "moduleNameMapper": {
+      "^@actions/core$": "<rootDir>/__tests__/mocks/actionsCore.js",
+      "^@actions/github$": "<rootDir>/__tests__/mocks/actionsGithub.js",
+      "^@octokit/rest$": "<rootDir>/__tests__/mocks/octokitRest.js"
+    },
     "transform": {
-      "^.+\\.ts$": "ts-jest"
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "tsconfig.jest.json"
+        }
+      ]
     },
     "coverageReporters": [
       "json-summary",
@@ -63,17 +73,17 @@
     ]
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "@octokit/rest": "^20.1.1",
-    "yaml": "^2.8.3"
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
+    "@octokit/rest": "^22.0.1",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.14.1",
-    "@vercel/ncc": "^0.38.3",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.3.2",
-    "typescript": "^5.8.3"
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.0.1",
+    "@vercel/ncc": "^0.44.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11",
+    "typescript": "^6.0.3"
   }
 }
