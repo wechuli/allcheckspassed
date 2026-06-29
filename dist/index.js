@@ -1050,10 +1050,8 @@ exports.restClient = new rest_1.Octokit({
     baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
     log: {
         // don't log info and debug messages
-        info: () => {
-        },
-        debug: () => {
-        },
+        info: () => { },
+        debug: () => { },
         warn: console.warn,
         error: console.error,
     },
