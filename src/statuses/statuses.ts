@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import { IInputs } from "../utils/inputsExtractor";
 import { getAllStatusCommits } from "./statusesAPI";
 import { IStatus } from "./statusesInterfaces";
-import { ICheck } from "src/checks/checksInterfaces";
+import { ICheck } from "../checks/checksInterfaces";
 
 export function mapStatusesToChecksModel(statuses: IStatus[]): ICheck[] {
   const checks: ICheck[] = statuses.map((status) => ({

@@ -33,12 +33,12 @@ describe("parseChecksArray", () => {
     });
 
     it("returns an error if input is invalid JSON",()=>{
-        expect(()=>parseChecksArray('{"name":"check1","app_id":1')).toThrowError();
+        expect(()=>parseChecksArray('{"name":"check1","app_id":1')).toThrow();
 
     })
 
     it("return an error if the parsed JSON does not have the correct properties",()=>{
-        expect(()=>parseChecksArray('[{"name":"check1","app_id":1},{"name":"check2"}]')).toThrowError();
+        expect(()=>parseChecksArray('[{"name":"check1","app_id":1},{"name":"check2"}]')).toThrow();
     })
 
 });

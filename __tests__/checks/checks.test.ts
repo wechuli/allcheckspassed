@@ -125,6 +125,10 @@ describe("Checks", () => {
     app: { id: 9999, slug: "github-actions", name: "GitHub Actions" },
   };
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -133,18 +137,20 @@ describe("Checks", () => {
     warningMock = jest.spyOn(core, "warning").mockImplementation();
     setFailedMock = jest.spyOn(core, "setFailed").mockImplementation();
 
-    // Mock summary functionality
-    const mockWrite = jest.fn().mockResolvedValue(undefined);
-    const mockAddHeading = jest.fn().mockReturnThis();
-    const mockAddTable = jest.fn().mockReturnThis();
-
+    // core.summary returns a singleton Summary instance whose getter is non-configurable
+    // in @actions/core 3.x. Spy directly on the instance's prototype methods instead.
+    const summaryInstance = core.summary as any;
     summaryMock = {
-      write: mockWrite,
-      addHeading: mockAddHeading,
-      addTable: mockAddTable,
+      write: jest
+        .spyOn(summaryInstance, "write")
+        .mockResolvedValue(undefined as any),
+      addHeading: jest
+        .spyOn(summaryInstance, "addHeading")
+        .mockReturnValue(summaryInstance),
+      addTable: jest
+        .spyOn(summaryInstance, "addTable")
+        .mockReturnValue(summaryInstance),
     };
-
-    jest.spyOn(core, "summary", "get").mockReturnValue(summaryMock);
 
     // Mock API functions
     getAllChecksMock = jest
@@ -161,6 +167,7 @@ describe("Checks", () => {
       .mockResolvedValue("allcheckspassed");
     sleepMock = jest.spyOn(timeFuncs, "sleep").mockResolvedValue();
   });
+
 
   describe("constructor", () => {
     it("should set all properties correctly", () => {
