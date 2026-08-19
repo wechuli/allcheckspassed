@@ -28,7 +28,7 @@
   "scripts": {
     "build": "tsc",
     "bundle": "npm run format:write && npm run package",
-    "package": "ncc build src/index.ts --license licenses.txt",
+    "package": "esbuild src/index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js",
     "test": "jest",
     "all": "npm run build && npm run test && npm run package"
   },
@@ -49,19 +49,24 @@
       "/node_modules/",
       "/dist/"
     ],
-    "moduleNameMapper": {
-      "^@actions/core$": "<rootDir>/__tests__/mocks/actionsCore.js",
-      "^@actions/github$": "<rootDir>/__tests__/mocks/actionsGithub.js",
-      "^@octokit/rest$": "<rootDir>/__tests__/mocks/octokitRest.js"
-    },
+    "resolver": "<rootDir>/jest.resolver.cjs",
     "transform": {
       "^.+\\.ts$": [
         "ts-jest",
         {
-          "tsconfig": "tsconfig.jest.json"
+          "tsconfig": "tsconfig.test.json"
+        }
+      ],
+      "^.+\\.m?js$": [
+        "babel-jest",
+        {
+          "configFile": "./babel.config.cjs"
         }
       ]
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@actions|@octokit|before-after-hook|universal-user-agent|yaml)/)"
+    ],
     "coverageReporters": [
       "json-summary",
       "text",
@@ -79,9 +84,11 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.0.1",
-    "@vercel/ncc": "^0.44.0",
+    "esbuild": "^0.28.1",
     "jest": "^30.4.2",
     "ts-jest": "^29.4.11",
     "typescript": "^6.0.3"

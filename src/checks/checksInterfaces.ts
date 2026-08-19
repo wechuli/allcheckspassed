@@ -1,4 +1,4 @@
-import { IStatus } from "src/statuses/statusesInterfaces";
+import { IStatus } from "../statuses/statusesInterfaces";
 
 export interface ICheck {
   id: number;

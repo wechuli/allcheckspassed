@@ -34,16 +34,18 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.restClient = void 0;
-const rest_1 = require("@octokit/rest");
+const octokit = __importStar(require("@octokit/rest"));
 const core = __importStar(require("@actions/core"));
-exports.restClient = new rest_1.Octokit({
+exports.restClient = new octokit.Octokit({
     auth: core.getInput("token"),
     userAgent: "allcheckspassed-action",
     baseUrl: process.env.GITHUB_API_URL || "https://api.github.com",
     log: {
         // don't log info and debug messages
-        info: () => { },
-        debug: () => { },
+        info: () => {
+        },
+        debug: () => {
+        },
         warn: console.warn,
         error: console.error,
     },

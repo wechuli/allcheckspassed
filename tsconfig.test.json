@@ -1,9 +1,10 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
     "types": ["jest", "node"],
     "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "__tests__/**/*.ts"]
+  "include": ["src/**/*", "__tests__/**/*"]
 }
