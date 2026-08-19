@@ -303,10 +303,12 @@ and regenerate the bundle with:
 
 ```bash
 npm ci
+rm -rf dist/
 npm run build
 npm run package
 git diff -- dist/
-git add dist/
+git status --short -- dist/
+git add --all -- dist/
 ```
 
 Commit the updated `dist/` files with your source changes. CI rebuilds the Action and verifies that the committed bundle

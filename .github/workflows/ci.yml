@@ -25,6 +25,8 @@ jobs:
           cache: "npm"
       - name: Install dependencies
         run: npm ci
+      - name: Clean generated dist
+        run: rm -rf dist/
       - name: Build
         run: npm run build
       - name: Package Action
@@ -32,12 +34,17 @@ jobs:
       - name: Verify generated dist is committed
         shell: bash
         run: |
-          if ! git diff --exit-code -- dist/; then
+          if ! git diff --quiet --exit-code -- dist/ ||
+            [[ -n "$(git ls-files --others --exclude-standard -- dist/)" ]]; then
+            git diff --exit-code -- dist/ || true
+            git status --short --untracked-files=all -- dist/
             echo "::error::Generated dist/ is out of date."
             echo "Run:"
             echo "  npm ci"
+            echo "  rm -rf dist/"
             echo "  npm run build"
             echo "  npm run package"
+            echo "  git add --all -- dist/"
             echo "then commit the resulting dist/ changes."
             exit 1
           fi
