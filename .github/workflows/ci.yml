@@ -1,40 +1,43 @@
-name: Build Action
+name: Verify Action Build
+
 on:
+  pull_request:
+    branches:
+      - "main"
   push:
     branches:
       - "main"
-    paths:
-      - "src/**"
-  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  verify:
+    name: Verify Action Build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: install nodejs
+      - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "24.4.0"
+          node-version-file: ".node-version"
           cache: "npm"
       - name: Install dependencies
         run: npm ci
-      # - name: Test Action
-      #   run: npm run test
-      - name: Build Action
+      - name: Build
         run: npm run build
       - name: Package Action
         run: npm run package
-      - name: Commit and push
-        env:
-          ACTOR: ${{ github.actor }}
+      - name: Verify generated dist is committed
+        shell: bash
         run: |
-          git config --global user.name "$ACTOR"
-          git config --global user.email "$ACTOR@users.noreply.github.com"
-          git add .
-          git commit -m "Action build at commit $GITHUB_SHA"
-          git push origin
+          if ! git diff --exit-code -- dist/; then
+            echo "::error::Generated dist/ is out of date."
+            echo "Run:"
+            echo "  npm ci"
+            echo "  npm run build"
+            echo "  npm run package"
+            echo "then commit the resulting dist/ changes."
+            exit 1
+          fi
