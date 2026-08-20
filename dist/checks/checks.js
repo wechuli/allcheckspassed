@@ -57,7 +57,7 @@ function formatCheckNameForSummary(check) {
         return check.name;
     }
     return {
-        data: `<a href="${escapeHtml(check.details_url)}">${escapeHtml(check.name)}</a>`,
+        data: `<a href="${escapeHtml(check.details_url)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(check.name)}</a>`,
     };
 }
 function formatCommitStatusContextForSummary(check) {
@@ -67,7 +67,7 @@ function formatCommitStatusContextForSummary(check) {
         return context;
     }
     return {
-        data: `<a href="${escapeHtml(targetUrl)}">${escapeHtml(context)}</a>`,
+        data: `<a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(context)}</a>`,
     };
 }
 class Checks {
