@@ -42,28 +42,18 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function formatCheckNameForSummary(check: ICheck): string | { data: string } {
-  if (!check.details_url) {
-    return check.name;
-  }
-
-  return {
-    data: `${escapeHtml(check.name)} <a href="${escapeHtml(check.details_url)}">&#128279;</a>`,
-  };
-}
-
-function formatCommitStatusContextForSummary(
+function formatCheckIdForSummary(
   check: ICheck,
+  linkUrl?: string | null,
 ): string | { data: string } {
-  const targetUrl = check.commit_status?.target_url;
-  const context = check.commit_status?.context || " ";
+  const checkId = check.id.toString();
 
-  if (!targetUrl) {
-    return context;
+  if (!linkUrl) {
+    return checkId;
   }
 
   return {
-    data: `<a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(context)}</a>`,
+    data: `<a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(checkId)}</a>`,
   };
 }
 
@@ -349,6 +339,7 @@ export default class Checks {
         header: true,
       },
       { data: "app.id", header: true },
+      { data: "check.id", header: true },
     ];
 
     let commitStatusesSummaryHeader = [
@@ -358,6 +349,7 @@ export default class Checks {
       { data: "updated_at", header: true },
       { data: "creator.login", header: true },
       { data: "creator.id", header: true },
+      { data: "check.id", header: true },
     ];
 
     // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
@@ -371,24 +363,26 @@ export default class Checks {
 
     let checkSummary: any[] = checksOnly.map((check) => {
       return [
-        formatCheckNameForSummary(check),
+        check.name,
         check.status,
         check.conclusion ? addCheckConclusionEmoji(check.conclusion) : " ",
         check.started_at,
         check.completed_at ? check.completed_at : " ",
         check.app.name,
         check.app.id.toString(),
+        formatCheckIdForSummary(check, check.details_url),
       ];
     });
 
     let commitStatusesSummary: any[] = commitStatusesOnly.map((check) => {
       return [
-        formatCommitStatusContextForSummary(check),
+        check.commit_status?.context,
         addCommitStatusEmoji(check.commit_status?.state as string),
         check.commit_status?.created_at,
         check.commit_status?.updated_at,
         check.commit_status?.creator.login,
         check.commit_status?.creator.id.toString(),
+        formatCheckIdForSummary(check, check.commit_status?.target_url),
       ];
     });
 

@@ -796,7 +796,7 @@ describe("Checks", () => {
       expect(summaryMock.write).toHaveBeenCalled();
     });
 
-    it("should render check names with a link icon when details_url exists", async () => {
+    it("should render check.id as a link when details_url exists", async () => {
       const props = {
         ...defaultProps,
         showJobSummary: true,
@@ -842,11 +842,13 @@ describe("Checks", () => {
 
       const checksSummaryTable = summaryMock.addTable.mock.calls[0][0];
 
-      expect(checksSummaryTable[1][0]).toEqual({
-        data: `${githubActionsCheckWithJobUrl.name} <a href="${githubActionsCheckWithJobUrl.details_url}">&#128279;</a>`,
+      expect(checksSummaryTable[1][0]).toBe(githubActionsCheckWithJobUrl.name);
+      expect(checksSummaryTable[1][7]).toEqual({
+        data: `<a href="${githubActionsCheckWithJobUrl.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${githubActionsCheckWithJobUrl.id}</a>`,
       });
-      expect(checksSummaryTable[2][0]).toEqual({
-        data: `${nonGithubActionsCheck.name} <a href="${nonGithubActionsCheck.details_url}">&#128279;</a>`,
+      expect(checksSummaryTable[2][0]).toBe(nonGithubActionsCheck.name);
+      expect(checksSummaryTable[2][7]).toEqual({
+        data: `<a href="${nonGithubActionsCheck.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${nonGithubActionsCheck.id}</a>`,
       });
     });
 
@@ -1058,7 +1060,7 @@ describe("Checks", () => {
       expect(summaryMock.write).toHaveBeenCalledTimes(2);
     });
 
-    it("should render commit status context as a link when target_url exists", async () => {
+    it("should render commit status check.id as a link when target_url exists", async () => {
       const props = {
         ...defaultProps,
         showJobSummary: true,
@@ -1097,8 +1099,9 @@ describe("Checks", () => {
       await checks.run();
 
       const commitStatusesTable = summaryMock.addTable.mock.calls[1][0];
-      expect(commitStatusesTable[1][0]).toEqual({
-        data: `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">ci/with-link</a>`,
+      expect(commitStatusesTable[1][0]).toBe("ci/with-link");
+      expect(commitStatusesTable[1][6]).toEqual({
+        data: `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">2001</a>`,
       });
     });
 
