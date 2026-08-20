@@ -142,7 +142,8 @@ class Checks {
         // let's get the check from the workflow run itself, if the value already exists, don't re-fetch it
         if (!this.ownCheck) {
             let ownCheckName = await (0, checkNameExtractor_1.extractOwnCheckNameFromWorkflow)();
-            this.ownCheck = this.allChecks.find((check) => check.name === ownCheckName && check.app.slug === checksConstants_1.GitHubActionsBotSlug);
+            this.ownCheck = this.allChecks.find((check) => check.name === ownCheckName &&
+                check.app.slug === checksConstants_1.GitHubActionsBotSlug);
             if (!this.ownCheck) {
                 core.warning(`Could not determine own allcheckspassed check (expected name: ${JSON.stringify(ownCheckName)}, this may cause an indefinite loop)`);
             }
