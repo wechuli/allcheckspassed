@@ -843,10 +843,10 @@ describe("Checks", () => {
       const checksSummaryTable = summaryMock.addTable.mock.calls[0][0];
 
       expect(checksSummaryTable[1][0]).toEqual({
-        data: `<a href="${githubActionsCheckWithJobUrl.details_url}">${githubActionsCheckWithJobUrl.name}</a>`,
+        data: `<a href="${githubActionsCheckWithJobUrl.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${githubActionsCheckWithJobUrl.name}</a>`,
       });
       expect(checksSummaryTable[2][0]).toEqual({
-        data: `<a href="${nonGithubActionsCheck.details_url}">${nonGithubActionsCheck.name}</a>`,
+        data: `<a href="${nonGithubActionsCheck.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${nonGithubActionsCheck.name}</a>`,
       });
     });
 
@@ -1098,7 +1098,7 @@ describe("Checks", () => {
 
       const commitStatusesTable = summaryMock.addTable.mock.calls[1][0];
       expect(commitStatusesTable[1][0]).toEqual({
-        data: `<a href="${targetUrl}">ci/with-link</a>`,
+        data: `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">ci/with-link</a>`,
       });
     });
 

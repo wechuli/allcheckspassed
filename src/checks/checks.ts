@@ -48,7 +48,7 @@ function formatCheckNameForSummary(check: ICheck): string | { data: string } {
   }
 
   return {
-    data: `<a href="${escapeHtml(check.details_url)}">${escapeHtml(
+    data: `<a href="${escapeHtml(check.details_url)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(
       check.name,
     )}</a>`,
   };
@@ -65,7 +65,7 @@ function formatCommitStatusContextForSummary(
   }
 
   return {
-    data: `<a href="${escapeHtml(targetUrl)}">${escapeHtml(context)}</a>`,
+    data: `<a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(context)}</a>`,
   };
 }
 
