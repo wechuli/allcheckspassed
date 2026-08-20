@@ -44,6 +44,32 @@ const checkNameExtractor_1 = require("../utils/checkNameExtractor");
 const checksConstants_1 = require("./checksConstants");
 const checkEmoji_1 = require("./checkEmoji");
 const statusesFilters_1 = require("../statuses/statusesFilters");
+function escapeHtml(value) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+function formatCheckNameForSummary(check) {
+    if (!check.details_url) {
+        return check.name;
+    }
+    return {
+        data: `<a href="${escapeHtml(check.details_url)}">${escapeHtml(check.name)}</a>`,
+    };
+}
+function formatCommitStatusContextForSummary(check) {
+    const targetUrl = check.commit_status?.target_url;
+    const context = check.commit_status?.context || " ";
+    if (!targetUrl) {
+        return context;
+    }
+    return {
+        data: `<a href="${escapeHtml(targetUrl)}">${escapeHtml(context)}</a>`,
+    };
+}
 class Checks {
     // data
     allChecks = [];
@@ -261,7 +287,7 @@ class Checks {
         let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter((check) => check.commit_status !== undefined);
         let checkSummary = checksOnly.map((check) => {
             return [
-                check.name,
+                formatCheckNameForSummary(check),
                 check.status,
                 check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ",
                 check.started_at,
@@ -272,7 +298,7 @@ class Checks {
         });
         let commitStatusesSummary = commitStatusesOnly.map((check) => {
             return [
-                check.commit_status?.context,
+                formatCommitStatusContextForSummary(check),
                 (0, statusesConstants_1.addCommitStatusEmoji)(check.commit_status?.state),
                 check.commit_status?.created_at,
                 check.commit_status?.updated_at,

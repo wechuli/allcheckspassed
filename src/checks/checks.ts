@@ -33,6 +33,42 @@ interface IRepo {
   repo: string;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatCheckNameForSummary(check: ICheck): string | { data: string } {
+  if (!check.details_url) {
+    return check.name;
+  }
+
+  return {
+    data: `<a href="${escapeHtml(check.details_url)}">${escapeHtml(
+      check.name,
+    )}</a>`,
+  };
+}
+
+function formatCommitStatusContextForSummary(
+  check: ICheck,
+): string | { data: string } {
+  const targetUrl = check.commit_status?.target_url;
+  const context = check.commit_status?.context || " ";
+
+  if (!targetUrl) {
+    return context;
+  }
+
+  return {
+    data: `<a href="${escapeHtml(targetUrl)}">${escapeHtml(context)}</a>`,
+  };
+}
+
 export default class Checks {
   // data
   private allChecks: ICheck[] = [];
@@ -88,14 +124,14 @@ export default class Checks {
           const workflowRuns = await getWorkflowRunsForCommit(
             this.owner,
             this.repo,
-            this.ref
+            this.ref,
           );
           checks = filterSupersededWorkflowRunChecks(checks, workflowRuns);
         } catch (error: any) {
           core.warning(
             "Could not fetch workflow runs to filter superseded checks, " +
               "proceeding with all checks: " +
-              error.message
+              error.message,
           );
         }
       }
@@ -104,10 +140,10 @@ export default class Checks {
         let statusCommits = await getAllStatusCommits(
           this.owner,
           this.repo,
-          this.ref
+          this.ref,
         );
         let statusChecksAsCommits = mapStatusesToChecksModel(
-          getMostRecentStatusPerContextAndCreator(statusCommits)
+          getMostRecentStatusPerContextAndCreator(statusCommits),
         );
         checks = checks.concat(statusChecksAsCommits);
       }
@@ -125,14 +161,15 @@ export default class Checks {
 
       this.ownCheck = this.allChecks.find(
         (check) =>
-          check.name === ownCheckName && check.app.slug === GitHubActionsBotSlug
+          check.name === ownCheckName &&
+          check.app.slug === GitHubActionsBotSlug,
       );
 
       if (!this.ownCheck) {
         core.warning(
           `Could not determine own allcheckspassed check (expected name: ${JSON.stringify(
-            ownCheckName
-          )}, this may cause an indefinite loop)`
+            ownCheckName,
+          )}, this may cause an indefinite loop)`,
         );
       }
     }
@@ -140,18 +177,18 @@ export default class Checks {
     // start by checking if the user has defined both checks_include and checks_exclude inputs and fail if that is the case
     let ambigousChecks = checkOneOfTheChecksInputIsEmpty(
       this.checksInclude,
-      this.checksExclude
+      this.checksExclude,
     );
     if (!ambigousChecks) {
       throw new Error(
-        "You cannot define both checks_include and checks_exclude inputs, please use only one of them"
+        "You cannot define both checks_include and checks_exclude inputs, please use only one of them",
       );
     }
     // if neither checks_include nor checks_exclude are defined, then we will use all checks
 
     if (this.checksInclude.length === 0 && this.checksExclude.length === 0) {
       this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(
-        this.allChecks
+        this.allChecks,
       );
       return;
     }
@@ -160,7 +197,7 @@ export default class Checks {
     if (this.checksInclude.length > 0 && this.checksExclude.length === 0) {
       let firstPassthrough = filterChecksWithMatchingNameAndAppId(
         this.allChecks,
-        this.checksInclude
+        this.checksInclude,
       );
       // lets separate the object
 
@@ -168,7 +205,7 @@ export default class Checks {
       let missingChecks = firstPassthrough["missingChecks"];
 
       this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(
-        removeDuplicateChecksEntriesFromSelf(filteredChecks)
+        removeDuplicateChecksEntriesFromSelf(filteredChecks),
       );
       this.missingChecks =
         removeDuplicateEntriesChecksInputsFromSelf(missingChecks);
@@ -178,10 +215,10 @@ export default class Checks {
     if (this.checksExclude.length > 0 && this.checksInclude.length === 0) {
       let firstPassthrough = removeChecksWithMatchingNameAndAppId(
         this.allChecks,
-        this.checksExclude
+        this.checksExclude,
       );
       this.filteredChecks = takeMostRecentChecksForMatchingNameAndAppId(
-        removeDuplicateChecksEntriesFromSelf(firstPassthrough)
+        removeDuplicateChecksEntriesFromSelf(firstPassthrough),
       );
       return;
     }
@@ -207,7 +244,7 @@ export default class Checks {
     }
 
     let failingChecks = checks.filter((check) =>
-      failureConclusions.includes(check.conclusion!)
+      failureConclusions.includes(check.conclusion!),
     );
     // if any of the checks are failing and we wish to fail fast, then we will return true now - default behavior
     if (failingChecks.length > 0 && this.failFast) {
@@ -222,13 +259,13 @@ export default class Checks {
       checkStatus.PENDING,
     ];
     let anyInProgressQueuedWaiting = checks.filter((check) =>
-      inProgressQueuedWaiting.includes(check.status)
+      inProgressQueuedWaiting.includes(check.status),
     );
     if (anyInProgressQueuedWaiting.length > 0) {
       if (this.verbose) {
         anyInProgressQueuedWaiting.forEach((check) => {
           core.info(
-            `Waiting for check completion of ${JSON.stringify(check.name)}`
+            `Waiting for check completion of ${JSON.stringify(check.name)}`,
           );
         });
       }
@@ -252,10 +289,10 @@ export default class Checks {
     // check for any in_progess checks in the filtered checks excluding the check from the workflow run itself
 
     let filteredChecksExcludingOwnCheck = this.filteredChecks.filter(
-      (check) => check.id !== this.ownCheck?.id
+      (check) => check.id !== this.ownCheck?.id,
     );
     let checksResult = this.evaluateChecksStatus(
-      filteredChecksExcludingOwnCheck
+      filteredChecksExcludingOwnCheck,
     );
 
     return {
@@ -289,7 +326,7 @@ export default class Checks {
         break;
       }
       core.info(
-        `Polling API for checks status, iteration: ${iteration} out of ${this.retries}`
+        `Polling API for checks status, iteration: ${iteration} out of ${this.retries}`,
       );
       if (!inProgressChecks) {
         core.info(evaluationCompleteMessage);
@@ -328,15 +365,15 @@ export default class Checks {
     // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
 
     let checksOnly = filteredChecksExcludingOwnCheck.filter(
-      (check) => check.commit_status === undefined
+      (check) => check.commit_status === undefined,
     );
     let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter(
-      (check) => check.commit_status !== undefined
+      (check) => check.commit_status !== undefined,
     );
 
     let checkSummary: any[] = checksOnly.map((check) => {
       return [
-        check.name,
+        formatCheckNameForSummary(check),
         check.status,
         check.conclusion ? addCheckConclusionEmoji(check.conclusion) : " ",
         check.started_at,
@@ -348,7 +385,7 @@ export default class Checks {
 
     let commitStatusesSummary: any[] = commitStatusesOnly.map((check) => {
       return [
-        check.commit_status?.context,
+        formatCommitStatusContextForSummary(check),
         addCommitStatusEmoji(check.commit_status?.state as string),
         check.commit_status?.created_at,
         check.commit_status?.updated_at,
@@ -381,13 +418,13 @@ export default class Checks {
     // fail the step if the checks did not pass and the user wants us to fail
     if (!allChecksPass && this.failStep) {
       core.setFailed(
-        "Some checks have failed or timed out, please check the workflow run summary to get the details"
+        "Some checks have failed or timed out, please check the workflow run summary to get the details",
       );
     }
 
     if (missingChecks.length > 0) {
       core.warning(
-        "Some checks were not found, please check the workflow run summary to get the details"
+        "Some checks were not found, please check the workflow run summary to get the details",
       );
       let missingChecksSummaryHeader = [
         { data: "name", header: true },

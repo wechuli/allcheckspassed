@@ -1,6 +1,7 @@
 export interface IStatus {
   id: number;
   context: string;
+  target_url?: string | null;
   state: string;
   creator: {
     login: string;

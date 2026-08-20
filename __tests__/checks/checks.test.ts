@@ -168,7 +168,6 @@ describe("Checks", () => {
     sleepMock = jest.spyOn(timeFuncs, "sleep").mockResolvedValue();
   });
 
-
   describe("constructor", () => {
     it("should set all properties correctly", () => {
       const checks = new Checks(defaultProps);
@@ -179,15 +178,15 @@ describe("Checks", () => {
       expect(checks["checksExclude"]).toBe(defaultProps.checksExclude);
       expect(checks["checksInclude"]).toBe(defaultProps.checksInclude);
       expect(checks["treatSkippedAsPassed"]).toBe(
-        defaultProps.treatSkippedAsPassed
+        defaultProps.treatSkippedAsPassed,
       );
       expect(checks["treatNeutralAsPassed"]).toBe(
-        defaultProps.treatNeutralAsPassed
+        defaultProps.treatNeutralAsPassed,
       );
       expect(checks["failFast"]).toBe(defaultProps.failFast);
       expect(checks["failStep"]).toBe(defaultProps.failStep);
       expect(checks["failOnMissingChecks"]).toBe(
-        defaultProps.failOnMissingChecks
+        defaultProps.failOnMissingChecks,
       );
       expect(checks["poll"]).toBe(defaultProps.poll);
       expect(checks["pollingInterval"]).toBe(defaultProps.pollingInterval);
@@ -195,10 +194,10 @@ describe("Checks", () => {
       expect(checks["verbose"]).toBe(defaultProps.verbose);
       expect(checks["showJobSummary"]).toBe(defaultProps.showJobSummary);
       expect(checks["includeStatusCommits"]).toBe(
-        defaultProps.includeStatusCommits
+        defaultProps.includeStatusCommits,
       );
       expect(checks["ignoreSupersededRuns"]).toBe(
-        defaultProps.ignoreSupersededRuns
+        defaultProps.ignoreSupersededRuns,
       );
     });
   });
@@ -211,7 +210,7 @@ describe("Checks", () => {
       expect(getAllChecksMock).toHaveBeenCalledWith(
         defaultProps.owner,
         defaultProps.repo,
-        defaultProps.commitSHA
+        defaultProps.commitSHA,
       );
       expect(checks["allChecks"]).toEqual(mockChecks);
     });
@@ -221,7 +220,7 @@ describe("Checks", () => {
 
       const checks = new Checks(defaultProps);
       await expect(checks.fetchAllChecks()).rejects.toThrow(
-        "Error getting all checks: API Error"
+        "Error getting all checks: API Error",
       );
     });
 
@@ -274,12 +273,12 @@ describe("Checks", () => {
       expect(getAllChecksMock).toHaveBeenCalledWith(
         defaultProps.owner,
         defaultProps.repo,
-        defaultProps.commitSHA
+        defaultProps.commitSHA,
       );
       expect(getAllStatusCommitsMock).toHaveBeenCalledWith(
         defaultProps.owner,
         defaultProps.repo,
-        defaultProps.commitSHA
+        defaultProps.commitSHA,
       );
 
       // Should have both checks and mapped status commits (only most recent per context/creator)
@@ -336,7 +335,7 @@ describe("Checks", () => {
 
     it("should proceed with all checks when workflow runs API fails", async () => {
       getWorkflowRunsForCommitMock.mockRejectedValueOnce(
-        new Error("API Error")
+        new Error("API Error"),
       );
 
       const checks = new Checks({
@@ -347,7 +346,7 @@ describe("Checks", () => {
 
       expect(checks["allChecks"]).toEqual(mockChecks);
       expect(warningMock).toHaveBeenCalledWith(
-        expect.stringContaining("Could not fetch workflow runs")
+        expect.stringContaining("Could not fetch workflow runs"),
       );
     });
 
@@ -387,10 +386,10 @@ describe("Checks", () => {
       await checks.filterChecks();
 
       const filteredChecksExcludingOwnCheck = checks["filteredChecks"].filter(
-        (check: ICheck) => check.id !== checks["ownCheck"]?.id
+        (check: ICheck) => check.id !== checks["ownCheck"]?.id,
       );
       const result = checks.evaluateChecksStatus(
-        filteredChecksExcludingOwnCheck
+        filteredChecksExcludingOwnCheck,
       );
 
       expect(result).toEqual({ in_progress: false, passed: true });
@@ -432,7 +431,7 @@ describe("Checks", () => {
 
       // Should only include the status with highest ID (1002)
       const statusChecks = checks["allChecks"].filter(
-        (check) => check.commit_status !== undefined
+        (check) => check.commit_status !== undefined,
       );
       expect(statusChecks).toHaveLength(1);
       expect(statusChecks[0].commit_status?.id).toBe(1002);
@@ -451,7 +450,7 @@ describe("Checks", () => {
       await checks.fetchAllChecks();
 
       await expect(checks.filterChecks()).rejects.toThrow(
-        "You cannot define both checks_include and checks_exclude inputs, please use only one of them"
+        "You cannot define both checks_include and checks_exclude inputs, please use only one of them",
       );
     });
 
@@ -506,7 +505,7 @@ describe("Checks", () => {
 
       expect(checks["filteredChecks"]).toHaveLength(5);
       expect(
-        checks["filteredChecks"].some((check) => check.name === "test-check-1")
+        checks["filteredChecks"].some((check) => check.name === "test-check-1"),
       ).toBeFalsy();
     });
 
@@ -525,7 +524,7 @@ describe("Checks", () => {
     it("should warn if own check cannot be determined", async () => {
       // Use different name than what extractOwnCheckNameFromWorkflow returns
       extractOwnCheckNameFromWorkflowMock.mockResolvedValueOnce(
-        "different-check-name"
+        "different-check-name",
       );
 
       const checks = new Checks(defaultProps);
@@ -643,7 +642,7 @@ describe("Checks", () => {
       checks.evaluateChecksStatus([mockChecks[2]]); // IN_PROGRESS check
 
       expect(infoMock).toHaveBeenCalledWith(
-        expect.stringContaining("Waiting for check completion")
+        expect.stringContaining("Waiting for check completion"),
       );
     });
 
@@ -717,7 +716,7 @@ describe("Checks", () => {
       expect(evaluateChecksStatusSpy).toHaveBeenCalledWith(
         expect.not.arrayContaining([
           expect.objectContaining({ id: mockOwnCheck.id }),
-        ])
+        ]),
       );
     });
   });
@@ -795,6 +794,60 @@ describe("Checks", () => {
       expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
       expect(summaryMock.addTable).toHaveBeenCalled();
       expect(summaryMock.write).toHaveBeenCalled();
+    });
+
+    it("should render check names as links when details_url exists", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+      };
+
+      const checks = new Checks(props);
+
+      const githubActionsCheckWithJobUrl: ICheck = {
+        id: 100,
+        name: "test-check-actions",
+        details_url:
+          "https://github.com/testOwner/testRepo/actions/runs/123/job/456",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.SUCCESS,
+        started_at: "2022-01-01T00:00:00Z",
+        completed_at: "2022-01-01T00:01:00Z",
+        check_suite: { id: 1010 },
+        app: { id: 1001, slug: "github-actions", name: "GitHub Actions" },
+      };
+
+      const nonGithubActionsCheck: ICheck = {
+        id: 101,
+        name: "test-check-external",
+        details_url: "https://example.com/some-check",
+        status: checkStatus.COMPLETED,
+        conclusion: checkConclusion.SUCCESS,
+        started_at: "2022-01-01T00:00:00Z",
+        completed_at: "2022-01-01T00:01:00Z",
+        check_suite: { id: 1011 },
+        app: { id: 1002, slug: "some-app", name: "Some App" },
+      };
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: [
+          githubActionsCheckWithJobUrl,
+          nonGithubActionsCheck,
+        ],
+      });
+
+      await checks.run();
+
+      const checksSummaryTable = summaryMock.addTable.mock.calls[0][0];
+
+      expect(checksSummaryTable[1][0]).toEqual({
+        data: `<a href="${githubActionsCheckWithJobUrl.details_url}">${githubActionsCheckWithJobUrl.name}</a>`,
+      });
+      expect(checksSummaryTable[2][0]).toEqual({
+        data: `<a href="${nonGithubActionsCheck.details_url}">${nonGithubActionsCheck.name}</a>`,
+      });
     });
 
     it("should not generate job summary when showJobSummary is false", async () => {
@@ -895,7 +948,7 @@ describe("Checks", () => {
       await checks.run();
 
       expect(setFailedMock).toHaveBeenCalledWith(
-        "Failing due to missing checks"
+        "Failing due to missing checks",
       );
     });
 
@@ -999,10 +1052,54 @@ describe("Checks", () => {
 
       expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
       expect(summaryMock.addHeading).toHaveBeenCalledWith(
-        "Commit Statuses Summary"
+        "Commit Statuses Summary",
       );
       expect(summaryMock.addTable).toHaveBeenCalledTimes(2); // Once for checks, once for statuses
       expect(summaryMock.write).toHaveBeenCalledTimes(2);
+    });
+
+    it("should render commit status context as a link when target_url exists", async () => {
+      const props = {
+        ...defaultProps,
+        showJobSummary: true,
+        includeStatusCommits: true,
+      };
+
+      const targetUrl = "https://ci.example.com/build/123";
+      const mockStatusCheck: ICheck = {
+        id: 2001,
+        name: "ci/with-link",
+        status: "completed",
+        conclusion: "success",
+        started_at: "2022-01-01T00:00:00Z",
+        completed_at: "2022-01-01T00:01:00Z",
+        check_suite: { id: 0 },
+        app: { id: 1234, slug: "testuser", name: "testuser" },
+        commit_status: {
+          id: 2001,
+          context: "ci/with-link",
+          target_url: targetUrl,
+          state: "success",
+          created_at: "2022-01-01T00:00:00Z",
+          updated_at: "2022-01-01T00:01:00Z",
+          creator: { login: "testuser", id: 1234 },
+        },
+      };
+
+      const checks = new Checks(props);
+
+      jest.spyOn(checks, "iterateChecks").mockResolvedValueOnce({
+        checksResult: { in_progress: false, passed: true },
+        missingChecks: [],
+        filteredChecksExcludingOwnCheck: [...mockChecks, mockStatusCheck],
+      });
+
+      await checks.run();
+
+      const commitStatusesTable = summaryMock.addTable.mock.calls[1][0];
+      expect(commitStatusesTable[1][0]).toEqual({
+        data: `<a href="${targetUrl}">ci/with-link</a>`,
+      });
     });
 
     it("should not generate commit statuses summary when there are no status commits", async () => {
@@ -1024,7 +1121,7 @@ describe("Checks", () => {
 
       expect(summaryMock.addHeading).toHaveBeenCalledWith("Checks Summary");
       expect(summaryMock.addHeading).not.toHaveBeenCalledWith(
-        "Commit Statuses Summary"
+        "Commit Statuses Summary",
       );
       expect(summaryMock.addTable).toHaveBeenCalledTimes(1); // Only checks summary
       expect(summaryMock.write).toHaveBeenCalledTimes(1);
