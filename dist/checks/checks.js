@@ -52,22 +52,13 @@ function escapeHtml(value) {
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#39;");
 }
-function formatCheckNameForSummary(check) {
-    if (!check.details_url) {
-        return check.name;
+function formatCheckIdForSummary(check, linkUrl) {
+    const checkId = check.id.toString();
+    if (!linkUrl) {
+        return checkId;
     }
     return {
-        data: `${escapeHtml(check.name)} <a href="${escapeHtml(check.details_url)}">&#128279;</a>`,
-    };
-}
-function formatCommitStatusContextForSummary(check) {
-    const targetUrl = check.commit_status?.target_url;
-    const context = check.commit_status?.context || " ";
-    if (!targetUrl) {
-        return context;
-    }
-    return {
-        data: `<a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(context)}</a>`,
+        data: `<a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(checkId)}</a>`,
     };
 }
 class Checks {
@@ -274,6 +265,7 @@ class Checks {
                 header: true,
             },
             { data: "app.id", header: true },
+            { data: "check.id", header: true },
         ];
         let commitStatusesSummaryHeader = [
             { data: "context", header: true },
@@ -282,29 +274,32 @@ class Checks {
             { data: "updated_at", header: true },
             { data: "creator.login", header: true },
             { data: "creator.id", header: true },
+            { data: "check.id", header: true },
         ];
         // pull out checks and commits statuses separately in the summary, for checks the commit_status is undefined, for commit statuses the commit_status is defined
         let checksOnly = filteredChecksExcludingOwnCheck.filter((check) => check.commit_status === undefined);
         let commitStatusesOnly = filteredChecksExcludingOwnCheck.filter((check) => check.commit_status !== undefined);
         let checkSummary = checksOnly.map((check) => {
             return [
-                formatCheckNameForSummary(check),
+                check.name,
                 check.status,
                 check.conclusion ? (0, checkEmoji_1.addCheckConclusionEmoji)(check.conclusion) : " ",
                 check.started_at,
                 check.completed_at ? check.completed_at : " ",
                 check.app.name,
                 check.app.id.toString(),
+                formatCheckIdForSummary(check, check.details_url),
             ];
         });
         let commitStatusesSummary = commitStatusesOnly.map((check) => {
             return [
-                formatCommitStatusContextForSummary(check),
+                check.commit_status?.context,
                 (0, statusesConstants_1.addCommitStatusEmoji)(check.commit_status?.state),
                 check.commit_status?.created_at,
                 check.commit_status?.updated_at,
                 check.commit_status?.creator.login,
                 check.commit_status?.creator.id.toString(),
+                formatCheckIdForSummary(check, check.commit_status?.target_url),
             ];
         });
         if (this.showJobSummary) {
