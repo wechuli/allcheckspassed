@@ -48,9 +48,7 @@ function formatCheckNameForSummary(check: ICheck): string | { data: string } {
   }
 
   return {
-    data: `<a href="${escapeHtml(check.details_url)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(
-      check.name,
-    )}</a>`,
+    data: `${escapeHtml(check.name)} <a href="${escapeHtml(check.details_url)}">&#128279;</a>`,
   };
 }
 

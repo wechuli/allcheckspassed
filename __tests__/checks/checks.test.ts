@@ -796,7 +796,7 @@ describe("Checks", () => {
       expect(summaryMock.write).toHaveBeenCalled();
     });
 
-    it("should render check names as links when details_url exists", async () => {
+    it("should render check names with a link icon when details_url exists", async () => {
       const props = {
         ...defaultProps,
         showJobSummary: true,
@@ -843,10 +843,10 @@ describe("Checks", () => {
       const checksSummaryTable = summaryMock.addTable.mock.calls[0][0];
 
       expect(checksSummaryTable[1][0]).toEqual({
-        data: `<a href="${githubActionsCheckWithJobUrl.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${githubActionsCheckWithJobUrl.name}</a>`,
+        data: `${githubActionsCheckWithJobUrl.name} <a href="${githubActionsCheckWithJobUrl.details_url}">&#128279;</a>`,
       });
       expect(checksSummaryTable[2][0]).toEqual({
-        data: `<a href="${nonGithubActionsCheck.details_url}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${nonGithubActionsCheck.name}</a>`,
+        data: `${nonGithubActionsCheck.name} <a href="${nonGithubActionsCheck.details_url}">&#128279;</a>`,
       });
     });
 
