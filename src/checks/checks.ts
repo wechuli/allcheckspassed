@@ -52,8 +52,19 @@ function formatCheckIdForSummary(
     return checkId;
   }
 
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(linkUrl);
+  } catch {
+    return checkId;
+  }
+
+  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+    return checkId;
+  }
+
   return {
-    data: `<a href="${escapeHtml(linkUrl)}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(checkId)}</a>`,
+    data: `<a href="${escapeHtml(parsedUrl.toString())}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">${escapeHtml(checkId)}</a>`,
   };
 }
 
