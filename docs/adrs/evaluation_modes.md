@@ -2,10 +2,10 @@
 
 This action supports two modes for deciding which check runs on a commit should be evaluated. The mode is controlled by the `ignore_superseded_runs` input, which defaults to `false` to preserve the historical behavior.
 
-| Mode                  | Input                                     | Source APIs              | Extra permissions                                                                                                                                 |
-| --------------------- | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mode                  | Input                                     | Source APIs              | Extra permissions                                                                                                                           |
+| --------------------- | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Default (raw checks)  | `ignore_superseded_runs: false` (default) | Checks API only          | None beyond `checks: read` on GitHub.com. On GHES where `job.check_run_id` is unavailable, add `contents: read` for workflow-file fallback. |
-| Workflow-run grouping | `ignore_superseded_runs: true`            | Checks API + Actions API | Adds `actions: read`. On GHES where `job.check_run_id` is unavailable, also add `contents: read`.                                            |
+| Workflow-run grouping | `ignore_superseded_runs: true`            | Checks API + Actions API | Adds `actions: read`. On GHES where `job.check_run_id` is unavailable, also add `contents: read`.                                           |
 
 ## Mode 1 — Default (raw checks evaluation)
 
