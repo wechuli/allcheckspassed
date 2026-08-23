@@ -35,7 +35,8 @@ any of the checks are still in progress, pending or queued when the workflow is 
 
 The action also created a checks summary with details of each check that was evaluated and their status:
 
-![Screenshot 2024-02-06 at 15 37 43](https://github.com/wechuli/allcheckspassed/assets/15605874/de9a3a20-02ff-4d96-8da5-0c8300d429e7)
+<img width="1542" height="480" alt="allcheckspassed2" src="https://github.com/user-attachments/assets/0f68894c-f590-43ee-93dd-5f6d9ea0f539" />
+
 
 ## How it works
 
