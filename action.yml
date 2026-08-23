@@ -13,7 +13,7 @@ inputs:
     required: false
     default: ${{ github.token }}
   checks_include:
-    description: "A comma separated list of checks to include in the evaluation, by default, all checks are included. You can provide a list of map keys, with app_id and check_name, to include only checks from a specific app, or with a specific name. Supports regex"
+    description: "A comma separated list of checks to include in the evaluation, by default, all checks are included. You can provide a list of map keys, with app_id and name, to include only checks from a specific app, or with a specific name. Supports regex"
     required: false
     default: "-1"
   checks_exclude:

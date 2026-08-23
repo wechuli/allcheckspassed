@@ -2,10 +2,10 @@
 
 This action supports two modes for deciding which check runs on a commit should be evaluated. The mode is controlled by the `ignore_superseded_runs` input, which defaults to `false` to preserve the historical behavior.
 
-| Mode                  | Input                                     | Source APIs              | Extra permissions                             |
-| --------------------- | ----------------------------------------- | ------------------------ | --------------------------------------------- |
-| Default (raw checks)  | `ignore_superseded_runs: false` (default) | Checks API only          | None beyond `checks: read` / `contents: read` |
-| Workflow-run grouping | `ignore_superseded_runs: true`            | Checks API + Actions API | Adds `actions: read`                          |
+| Mode                  | Input                                     | Source APIs              | Extra permissions                                                                                                                                 |
+| --------------------- | ----------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default (raw checks)  | `ignore_superseded_runs: false` (default) | Checks API only          | None beyond `checks: read` on GitHub.com. On GHES where `job.check_run_id` is unavailable, add `contents: read` for workflow-file fallback. |
+| Workflow-run grouping | `ignore_superseded_runs: true`            | Checks API + Actions API | Adds `actions: read`. On GHES where `job.check_run_id` is unavailable, also add `contents: read`.                                            |
 
 ## Mode 1 — Default (raw checks evaluation)
 
@@ -14,7 +14,7 @@ This is the original and default behavior.
 How it works:
 
 1. The action calls `GET /repos/:owner/:repo/commits/:ref/check-runs` to list every check run attached to the commit.
-2. After applying `checks_include` / `checks_exclude`, it deduplicates checks by `(check_name, app_id)`, keeping the check run with the highest check run ID (the most recent attempt for that exact name and app).
+2. After applying `checks_include` / `checks_exclude`, it deduplicates checks by `(name, app_id)`, keeping the check run with the highest check run ID (the most recent attempt for that exact name and app).
 3. Whatever remains is evaluated against the success / failure rules.
 
 Characteristics:
@@ -61,13 +61,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       checks: read
-      contents: read
       actions: read # required only when ignore_superseded_runs is true
     steps:
       - uses: wechuli/allcheckspassed@v2
         with:
           ignore_superseded_runs: true
 ```
+
+On GHES where `job.check_run_id` is unavailable, add `contents: read` to the same job permissions.
 
 ## Summary
 

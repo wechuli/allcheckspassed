@@ -6,7 +6,7 @@ This action supports specifying the app that should report a check by defining t
 
 ```yaml
 checks_include:
-  description: "A comma-separated list of checks to include in the evaluation. By default, all checks are included. You can provide a list of objects with app_id and check_name to include only checks from a specific app or with a specific name. Supports regex"
+  description: "A comma-separated list of checks to include in the evaluation. By default, all checks are included. You can provide a list of objects with app_id and name to include only checks from a specific app or with a specific name. Supports regex"
   required: false
   default: "-1"
 ```
@@ -19,8 +19,8 @@ steps:
     with:
       checks_include:
         [
-          { "app_id": 12345, "check_name": "build" },
-          { "app_id": 67890, "check_name": "lint" },
+          { "app_id": 12345, "name": "build" },
+          { "app_id": 67890, "name": "lint" },
         ]
 ```
 
